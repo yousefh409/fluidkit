@@ -4,3 +4,7 @@ export {
   supportsRefraction,
   supportsViewTransition,
 } from "./featureDetect";
+export {
+  resolvePrefersReducedMotion,
+  usePrefersReducedMotion,
+} from "./reducedMotion";
