@@ -5,3 +5,5 @@ export { MorphSurface } from "./MorphSurface";
 export type { MorphSurfaceProps } from "./MorphSurface";
 export { ThinkingBlob } from "./ThinkingBlob";
 export type { ThinkingBlobProps } from "./ThinkingBlob";
+export { FlowStagger } from "./FlowStagger";
+export type { FlowStaggerProps } from "./FlowStagger";

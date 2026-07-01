@@ -8,3 +8,10 @@ export type {
   UseMorphSurfaceProps,
   UseMorphContentProps,
 } from "./useMorph";
+export { useFlow } from "./useFlow";
+export type {
+  UseFlowOptions,
+  UseFlowResult,
+  UseFlowContainerProps,
+  UseFlowItemProps,
+} from "./useFlow";
