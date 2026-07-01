@@ -1,2 +1,6 @@
 // Shared utilities will be re-exported from here as they are implemented.
-export {};
+export {
+  supportsBackdropFilter,
+  supportsRefraction,
+  supportsViewTransition,
+} from "./featureDetect";
