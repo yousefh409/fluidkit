@@ -32,7 +32,7 @@ describe("createFilterDefsElement", () => {
     const blur = goo.querySelector("feGaussianBlur");
     expect(blur).not.toBeNull();
     expect(blur?.getAttribute("in")).toBe("SourceGraphic");
-    expect(blur?.getAttribute("stdDeviation")).toBe("8");
+    expect(blur?.getAttribute("stdDeviation")).toBe("6");
     expect(blur?.getAttribute("result")).toBe("blur");
 
     const colorMatrix = goo.querySelector("feColorMatrix");
@@ -40,7 +40,7 @@ describe("createFilterDefsElement", () => {
     expect(colorMatrix?.getAttribute("in")).toBe("blur");
     expect(colorMatrix?.getAttribute("mode")).toBe("matrix");
     expect(colorMatrix?.getAttribute("values")).toBe(
-      "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
+      "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
     );
   });
 

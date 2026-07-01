@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>fluidkit playground</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; background: #0c0c10; color: #e7e8ec;
+        font-family: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+        padding: 28px; letter-spacing: -0.01em;
+      }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      .sub { color: #8a8b92; font-size: 13px; margin: 0 0 24px; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 1000px; }
+      .card { border: 1px solid #23232b; border-radius: 18px; overflow: hidden; background: #131318; }
+      .stage {
+        position: relative; height: 300px; display: grid; place-items: center;
+        background: radial-gradient(130% 120% at 50% -10%, #17171f, #0d0d12);
+      }
+      .meta { padding: 12px 15px 15px; border-top: 1px solid #1e1e25; }
+      .meta h2 { font-size: 13.5px; margin: 0 0 3px; }
+      .meta p { font-size: 12px; color: #9a9ba3; margin: 0; line-height: 1.55; }
+      button.ctl {
+        font: inherit; font-size: 12px; background: rgba(255,255,255,.09); color: #fff;
+        border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+      }
+      button.ctl:hover { background: rgba(255,255,255,.16); }
+
+      /* MorphSurface demo: consumer-owned surface look, keyed on data-open */
+      .demo-surface {
+        background: #e7e8ec;
+        box-shadow: 0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5);
+      }
+      .demo-surface[data-open="false"] { border-radius: 999px; }
+      .demo-surface[data-open="true"]  { border-radius: 24px; }
+      .pill-label { display: flex; align-items: center; gap: 8px; padding: 12px 18px; color: #141417; font-weight: 650; font-size: 13px; white-space: nowrap; }
+      .pill-label .dot { width: 9px; height: 9px; border-radius: 50%; background: #141417; }
+      .panel-body { width: 300px; padding: 16px; color: #141417; }
+      .panel-body .ph { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 13px; }
+      .panel-body .ph .dot { width: 8px; height: 8px; border-radius: 50%; background: #141417; }
+      .panel-body .row { margin-top: 10px; background: rgba(20,20,23,.06); border-radius: 12px; padding: 9px 11px; font-size: 12px; line-height: 1.4; }
+      .panel-body .row.me { background: #141417; color: #e7e8ec; margin-left: auto; width: 72%; border-radius: 12px 12px 4px 12px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

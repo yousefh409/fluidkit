@@ -36,7 +36,11 @@ function createGooFilter(doc: Document): SVGFilterElement {
 
   const blur = doc.createElementNS(SVG_NS, "feGaussianBlur");
   blur.setAttribute("in", "SourceGraphic");
-  blur.setAttribute("stdDeviation", "8");
+  // stdDeviation 6 balances the goo across the size range we ship: large
+  // Metaballs (~64px) keep smooth mercury bridges, while small ThinkingBlob
+  // blobs (~20px) still fuse into one mass instead of the outer ones being
+  // blurred below the alpha-contrast threshold and vanishing.
+  blur.setAttribute("stdDeviation", "6");
   blur.setAttribute("result", "blur");
 
   const colorMatrix = doc.createElementNS(SVG_NS, "feColorMatrix");
@@ -44,7 +48,7 @@ function createGooFilter(doc: Document): SVGFilterElement {
   colorMatrix.setAttribute("mode", "matrix");
   colorMatrix.setAttribute(
     "values",
-    "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
+    "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
   );
 
   filter.append(blur, colorMatrix);
