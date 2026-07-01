@@ -31,10 +31,11 @@ export interface RippleProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
-/** Opacity a freshly-spawned ripple starts at, fading to 0 as it expands —
- * this (not the background itself) is what makes the ripple read as a
- * translucent wash of `currentColor` rather than a solid disc. */
-const RIPPLE_START_OPACITY = 0.35;
+/** Peak opacity of a ripple — this (not the background itself) is what makes
+ * it read as a translucent wash of `currentColor` rather than a solid disc.
+ * The opacity holds near this while the ripple expands, then fades at the end,
+ * so the growing ring stays legible instead of dissolving as soon as it grows. */
+const RIPPLE_PEAK_OPACITY = 0.4;
 
 export function Ripple({
   color,
@@ -98,9 +99,26 @@ export function Ripple({
                 translateX: "-50%",
                 translateY: "-50%",
               }}
-              initial={{ scale: 0, opacity: RIPPLE_START_OPACITY }}
-              animate={{ scale: 1, opacity: 0 }}
-              transition={{ duration: resolvedDuration / 1000 }}
+              initial={{ scale: 0, opacity: RIPPLE_PEAK_OPACITY }}
+              animate={{
+                scale: 1,
+                opacity: [RIPPLE_PEAK_OPACITY, RIPPLE_PEAK_OPACITY, 0],
+              }}
+              transition={{
+                // Both the top-level duration and the per-property `opacity`
+                // block need their own `duration`: Motion does NOT inherit the
+                // top-level duration into a per-value transition object, so a
+                // bare `opacity: { times }` would silently fall back to
+                // Motion's ~0.3s default and cut the ripple short.
+                duration: resolvedDuration / 1000,
+                ease: "easeOut", // applies to scale
+                opacity: {
+                  duration: resolvedDuration / 1000,
+                  // Hold near peak while it expands, then fade over the last ~35%.
+                  times: [0, 0.65, 1],
+                  ease: "easeIn",
+                },
+              }}
               onAnimationComplete={() => remove(ripple.id)}
             />
           ))}

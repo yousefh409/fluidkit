@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Metaballs, ThinkingBlob, MorphSurface, FlowStagger, LiquidTabs } from "../src/index";
+import { Metaballs, ThinkingBlob, MorphSurface, FlowStagger, LiquidTabs, Ripple } from "../src/index";
 
 function Card({
   title,
@@ -141,6 +141,20 @@ function App() {
         </Card>
         <Card title="LiquidTabs" desc="Active indicator glides + stretches like mercury; text stays crisp.">
           <TabsDemo />
+        </Card>
+        <Card title="Ripple" desc="Water ripple expands from the pointer on tap.">
+          <Ripple
+            color="#e7e8ec"
+            duration={650}
+            style={{
+              display: "grid", placeItems: "center", width: 200, height: 90,
+              borderRadius: 16, cursor: "pointer", userSelect: "none",
+              background: "#1b1c22", border: "1px solid rgba(255,255,255,.12)",
+              color: "#e7e8ec", fontSize: 14, fontWeight: 600,
+            }}
+          >
+            Tap me
+          </Ripple>
         </Card>
       </div>
     </>
