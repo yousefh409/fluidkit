@@ -5,15 +5,20 @@ import { Metaballs, ThinkingBlob, MorphSurface, FlowStagger, LiquidTabs, Ripple,
 function Card({
   title,
   desc,
+  hint,
   children,
 }: {
   title: string;
   desc: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="card">
-      <div className="stage">{children}</div>
+      <div className="stage">
+        {hint ? <div className="hint">{hint}</div> : null}
+        {children}
+      </div>
       <div className="meta">
         <h2>{title}</h2>
         <p>{desc}</p>
@@ -154,8 +159,8 @@ function GlassDemo() {
 function App() {
   return (
     <>
-      <h1>fluidkit playground</h1>
-      <p className="sub">Live primitives rendered from source, on the prototype backdrop.</p>
+      <h1>fluidkit</h1>
+      <p className="sub">A React library of fluid / liquid UI animations, built on Motion. All seven v0.1 primitives, live from source. Click the interactive ones.</p>
       <div className="grid">
         <Card title="Metaballs" desc="Same-color blobs that fuse like mercury (goo filter).">
           <div style={{ color: "#e7e8ec" }}>
@@ -167,16 +172,16 @@ function App() {
             <ThinkingBlob />
           </div>
         </Card>
-        <Card title="MorphSurface" desc="Launcher → panel. Surface morphs; text stays crisp.">
+        <Card title="MorphSurface" desc="Launcher → panel. Surface morphs; text stays crisp." hint="click Toggle morph">
           <MorphDemo />
         </Card>
-        <Card title="FlowStagger" desc="Children rise + un-blur + settle, staggered; siblings glide.">
+        <Card title="FlowStagger" desc="Children rise + un-blur + settle, staggered; siblings glide." hint="click Add item">
           <FlowDemo />
         </Card>
-        <Card title="LiquidTabs" desc="Active indicator glides + stretches like mercury; text stays crisp.">
+        <Card title="LiquidTabs" desc="Active indicator glides + stretches like mercury; text stays crisp." hint="click a tab">
           <TabsDemo />
         </Card>
-        <Card title="Ripple" desc="Water ripple expands from the pointer on tap.">
+        <Card title="Ripple" desc="Water ripple expands from the pointer on tap." hint="tap the surface">
           <Ripple
             color="#e7e8ec"
             duration={650}
