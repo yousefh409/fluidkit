@@ -344,8 +344,10 @@ function LiquidDragDemo() {
           elasticity={elasticity}
           axis={axis === "free" ? undefined : axis}
           dragConstraints={constraintsRef}
-          style={{ width: 72, height: 72, margin: "auto", position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(160deg, #63dcb9, #4fc9a3)", boxShadow: "0 10px 28px rgba(99,220,185,.4)", cursor: "grab" }}
-        />
+          style={{ width: 72, height: 72, margin: "auto", position: "absolute", inset: 0, cursor: "grab" }}
+        >
+          <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(160deg, #63dcb9, #4fc9a3)", boxShadow: "0 10px 28px rgba(99,220,185,.4)" }} />
+        </LiquidDrag>
       </div>
     }
     controls={<><Slider label="elasticity" value={elasticity} set={setElasticity} min={0} max={1} step={0.05} /><Seg label="axis" value={axis} set={setAxis} options={AXES} /></>} />;
@@ -356,7 +358,10 @@ function DripFuseDemo() {
   const [completions, setCompletions] = useState(0);
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
   return <Card id="drip-fuse" title="DripFuse" desc="A drop swells off a source body, tears free, springs to a target, and fuses in: one trigger-and-complete cycle." hint={`fired ${fire} · completed ${completions}`} wall
-    code={`<DripFuse fire={fire} material="${material}" onComplete={() => setCount((c) => c + 1)} />`}
+    code={`const [fire, setFire] = useState(0);
+const [completed, setCompleted] = useState(0);
+
+<DripFuse fire={fire} material="${material}" onComplete={() => setCompleted((c) => c + 1)} />`}
     stage={
       <DripFuse
         fire={fire}
