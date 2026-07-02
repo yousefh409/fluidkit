@@ -29,8 +29,10 @@ export function smoothstep(a: number, b: number, x: number): number {
  * under it and reaches full active color before full overlap.
  *
  * Each interval's overlap with the tab box is summed independently — no
- * merging — so callers must pass non-overlapping intervals (the tab flows
- * always pass a single interval).
+ * merging. Overlapping intervals are tolerated: the summed coverage is
+ * smoothstep-clamped to 1, so raw values above the upper edge simply saturate
+ * (slideFlow can pass a body + tail interval that briefly overlap when the
+ * tail is near the body).
  */
 export function tabCoverage(
   left: number,

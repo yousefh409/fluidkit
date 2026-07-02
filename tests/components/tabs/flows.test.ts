@@ -40,4 +40,11 @@ describe("slideFlow", () => {
     // body pill + tail circle (+ possibly a bridge) → at least two closures
     expect(closures(scene.path)).toBeGreaterThanOrEqual(2);
   });
+
+  it("reports both body and tail ink intervals when the tail is separated", () => {
+    const t = new TensionField();
+    const scene = slideFlow.scene([200, 60, 120], [0, 0, 0], t, ctx(60));
+    // labels follow the liquid: body interval + tail interval
+    expect(scene.inkIntervals).toHaveLength(2);
+  });
 });

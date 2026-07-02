@@ -83,6 +83,7 @@ export const slideFlow: Flow = {
     const bh = h / Math.sqrt(stretch);
 
     let path = roundRectPath({ x: cx, y: cy }, bw, bh, bh / 2);
+    const inkIntervals: Interval[] = [[cx - bw / 2, cx + bw / 2]];
 
     const gap = Math.abs(cx - tailX);
     const tailR = gap < 1 ? 0 : Math.min(gap * 0.3 + 5, h * 0.36);
@@ -92,9 +93,10 @@ export const slideFlow: Flow = {
         { id: "body", x: cx, y: cy, r: bh / 2 },
         { id: "tail", x: tailX, y: cy, r: tailR },
       ]);
+      inkIntervals.push([tailX - tailR, tailX + tailR]);
     }
 
-    return { path, inkIntervals: [[cx - bw / 2, cx + bw / 2]] };
+    return { path, inkIntervals };
   },
 };
 
