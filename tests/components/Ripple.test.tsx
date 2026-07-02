@@ -4,7 +4,7 @@ import { fireEvent, render } from "@testing-library/react";
 /**
  * `Ripple` composes `useRipple()`, which reads `usePrefersReducedMotion()`,
  * which reads Motion's `useReducedMotion()` under the hood. Matching the
- * pattern proven in tests/components/LiquidTabs.test.tsx, we mock
+ * pattern proven in tests/components/tabs/LiquidTabs.test.tsx, we mock
  * `motion/react` per test, always keeping the real `motion`/`AnimatePresence`
  * factories (via `importOriginal`) — only `useReducedMotion` is overridden.
  * Each test resets the module registry so `Ripple` and its dependency chain
