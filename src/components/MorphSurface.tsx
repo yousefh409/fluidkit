@@ -19,7 +19,13 @@ import {
   roundRectPath,
   specularPlacement,
 } from "../liquid";
-import type { LiquidBody, LiquidMaterial, SpecularSpot, Vec } from "../liquid";
+import type {
+  FillBox,
+  LiquidBody,
+  LiquidMaterial,
+  SpecularSpot,
+  Vec,
+} from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -180,15 +186,27 @@ export function MorphSurface({
 
   const activeScene = animating && settling ? scene : staticScene;
 
-  const faceBase: CSSProperties = {
+  // Faces are revealed FROM WITHIN the surface: the content overlay is
+  // clipped to the liquid shape, and the entering face waits a beat, then
+  // rises a few px into place while it fades in. Translate only — a face
+  // never scales.
+  const faceStyle = (visible: boolean, size: MorphSize): CSSProperties => ({
     position: "absolute",
     left: "50%",
     top: "50%",
-    transform: "translate(-50%, -50%)",
+    width: size.width,
+    height: size.height,
     display: "grid",
     placeItems: "center",
-    transition: "opacity 0.18s ease",
-  };
+    opacity: visible ? 1 : 0,
+    transform: visible
+      ? "translate(-50%, -50%)"
+      : "translate(-50%, calc(-50% + 10px))",
+    transition: visible
+      ? "opacity 0.28s ease 0.12s, transform 0.34s cubic-bezier(.22,1,.36,1) 0.12s"
+      : "opacity 0.12s ease, transform 0.12s ease",
+    pointerEvents: visible ? undefined : "none",
+  });
 
   return (
     <div
@@ -204,31 +222,21 @@ export function MorphSurface({
         path={activeScene.path}
         material={resolved}
         speculars={activeScene.speculars}
+        fillBox={resolved.kind === "mercury" ? activeScene.box : undefined}
         shadow
+        clipContent
       >
         <div
           data-fluidkit="morph-face"
           aria-hidden={open ? "true" : undefined}
-          style={{
-            ...faceBase,
-            width: closedSize.width,
-            height: closedSize.height,
-            opacity: open ? 0 : 1,
-            pointerEvents: open ? "none" : undefined,
-          }}
+          style={faceStyle(!open, closedSize)}
         >
           {closedContent}
         </div>
         <div
           data-fluidkit="morph-face"
           aria-hidden={open ? undefined : "true"}
-          style={{
-            ...faceBase,
-            width: openSize.width,
-            height: openSize.height,
-            opacity: open ? 1 : 0,
-            pointerEvents: open ? undefined : "none",
-          }}
+          style={faceStyle(open, openSize)}
         >
           {openContent}
         </div>
@@ -256,6 +264,8 @@ function targetSpringValues(
 interface Scene {
   path: string;
   speculars: SpecularSpot[];
+  /** Bounding box of the surface body — scopes gradient materials. */
+  box: FillBox;
 }
 
 function buildMorphScene(
@@ -304,5 +314,11 @@ function buildMorphScene(
       specularPlacement({ x: cx, y: cy, r: Math.min(w, h) * 0.48 }, light, 0.28)
     );
   }
-  return { path, speculars };
+  const box: FillBox = {
+    x: cx - w / 2,
+    y: cy - h / 2,
+    width: w,
+    height: h,
+  };
+  return { path, speculars, box };
 }

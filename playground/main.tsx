@@ -111,14 +111,14 @@ function FlowDemo() {
 
 function TabsDemo() {
   const [value, setValue] = useState("chat");
-  return <Card title="LiquidTabs" desc="Indicator glides + stretches; labels stay crisp. (Moves onto the engine in v0.3.)" hint="click a tab"
-    stage={<LiquidTabs value={value} onChange={setValue} color="#23242c" items={[{ id: "chat", label: "Chat" }, { id: "automations", label: "Automations" }, { id: "connections", label: "Connections" }]} style={{ display: "flex", gap: 4, padding: 5, borderRadius: 999, border: "1px solid #e2e3ea", background: "#fff", boxShadow: "0 1px 3px rgba(24,25,36,.07)" }} />} />;
+  return <Card title="LiquidTabs" desc="Indicator glides on a taut spring; labels stay crisp. (Engine-driven stretch lands in v0.3.)" hint="click a tab" wall
+    stage={<LiquidTabs value={value} onChange={setValue} color="#23242c" items={[{ id: "chat", label: "Chat" }, { id: "automations", label: "Automations" }, { id: "connections", label: "Connections" }]} style={{ display: "flex", gap: 4, padding: 5, borderRadius: 999, background: "rgba(255,255,255,.55)", backdropFilter: "blur(14px) saturate(1.6)", WebkitBackdropFilter: "blur(14px) saturate(1.6)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.6), 0 10px 28px rgba(46,44,72,.16)" }} />} />;
 }
 
 function RippleDemo() {
   const [duration, setDuration] = useState(650);
-  return <Card title="Ripple" desc="Water ripple expands from the pointer on tap." hint="tap the surface"
-    stage={<Ripple color="#4a6cf7" duration={duration} style={{ display: "grid", placeItems: "center", width: 200, height: 90, borderRadius: 16, cursor: "pointer", userSelect: "none", background: "#fff", border: "1px solid #e2e3ea", color: "#1c1d23", fontSize: 14, fontWeight: 600, boxShadow: "0 1px 3px rgba(24,25,36,.07)" }}>Tap me</Ripple>}
+  return <Card title="Ripple" desc="Water ripple expands from the pointer on tap, clipped to the surface." hint="tap the surface" wall
+    stage={<Ripple color="#4a6cf7" duration={duration} style={{ display: "grid", placeItems: "center", width: 210, height: 92, borderRadius: 20, cursor: "pointer", userSelect: "none", background: "rgba(255,255,255,.55)", backdropFilter: "blur(14px) saturate(1.6)", WebkitBackdropFilter: "blur(14px) saturate(1.6)", color: "#23242c", fontSize: 14, fontWeight: 650, boxShadow: "inset 0 1px 0 rgba(255,255,255,.6), 0 10px 28px rgba(46,44,72,.16)" }}>Tap me</Ripple>}
     controls={<Slider label="duration" value={duration} set={setDuration} min={200} max={2000} step={50} suffix="ms" />} />;
 }
 

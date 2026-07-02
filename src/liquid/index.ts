@@ -15,4 +15,4 @@ export type {
 } from "./materials";
 export { resolveMaterial, MERCURY_GRADIENT } from "./materials";
 export { LiquidRenderer } from "./LiquidRenderer";
-export type { LiquidRendererProps } from "./LiquidRenderer";
+export type { LiquidRendererProps, FillBox } from "./LiquidRenderer";
