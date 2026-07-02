@@ -19,7 +19,13 @@ import {
   roundRectPath,
   specularPlacement,
 } from "../liquid";
-import type { LiquidBody, LiquidMaterial, SpecularSpot, Vec } from "../liquid";
+import type {
+  LiquidBody,
+  LiquidMaterial,
+  LiquidSceneHandle,
+  SpecularSpot,
+  Vec,
+} from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -54,6 +60,9 @@ export interface MorphSurfaceProps
 const DEFAULT_CLOSED: MorphSize = { width: 150, height: 46 };
 const DEFAULT_OPEN: MorphSize = { width: 250, height: 200 };
 const BODY_SPRING = { stiffness: 240, damping: 24 };
+/** Satellites are lighter drops — a softer spring than the body's, so they
+ * lag the panel slightly and settle with a wobblier, more liquid arrival. */
+const SAT_SPRING = { stiffness: 150, damping: 14 };
 /** Horizontal margin reserved for parked satellites. */
 const SAT_MARGIN = 56;
 /** How long the loop keeps recomputing after a state flip (springs settle). */
@@ -108,11 +117,12 @@ export function MorphSurface({
       ? null
       : light ?? defaultLight(width, height);
 
-  // [w, h, sat0pos, sat0r, sat1pos, sat1r]
+  // [w, h, sat0pos, sat0r, sat1pos, sat1r] — body slots on the taut spring,
+  // satellite slots on their own softer one.
   const springs = useMotionSprings(
     2 + sats.length * 2,
     (i) => targetSpringValues(open, closedSize, openSize, sats)[i],
-    BODY_SPRING
+    (i) => (i < 2 ? BODY_SPRING : SAT_SPRING)
   );
 
   const tension = useRef(new TensionField());
@@ -126,7 +136,7 @@ export function MorphSurface({
     if (prevOpen.current !== open) {
       const targets = targetSpringValues(open, closedSize, openSize, sats);
       if (animating) {
-        springs.setTargets(targets, BODY_SPRING);
+        springs.setTargets(targets);
         setSettling(true);
         if (settleTimer.current) clearTimeout(settleTimer.current);
         settleTimer.current = setTimeout(() => setSettling(false), SETTLE_MS);
@@ -166,11 +176,18 @@ export function MorphSurface({
       sceneLight,
     ]
   );
-  const [scene, setScene] = useState(staticScene);
+  const renderer = useRef<LiquidSceneHandle>(null);
+
+  // The settle loop mutates the DOM behind React's back; whenever it isn't
+  // running (settled, reduced motion, off-screen) resync the declarative
+  // static scene so prop changes always win.
+  useEffect(() => {
+    if (!(animating && settling)) renderer.current?.setScene(staticScene);
+  }, [animating, settling, staticScene]);
 
   useAnimationFrame(() => {
     if (!animating || !settling) return;
-    setScene(
+    renderer.current?.setScene(
       buildMorphScene(
         springs.values.map((v) => v.get()),
         cx,
@@ -183,8 +200,6 @@ export function MorphSurface({
       )
     );
   });
-
-  const activeScene = animating && settling ? scene : staticScene;
 
   // Faces are revealed FROM WITHIN the surface: the content overlay is
   // clipped to the liquid shape, and the entering face waits a beat, then
@@ -219,9 +234,13 @@ export function MorphSurface({
       {...rest}
     >
       <LiquidRenderer
-        path={activeScene.path}
+        ref={renderer}
+        path={staticScene.path}
         material={resolved}
-        speculars={activeScene.speculars}
+        speculars={staticScene.speculars}
+        specularSlots={
+          resolved.specular && sceneLight ? sats.length + 1 : 0
+        }
         shadow
         clipContent
       >
