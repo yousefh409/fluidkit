@@ -62,11 +62,13 @@
     "build:site": "vite build playground",
     "check:gpu-leak": "node scripts/check-no-gpu-deps.mjs",
     "check:pack": "node scripts/check-pack.mjs",
+    "check:ssr": "node scripts/check-ssr.mjs",
     "dev": "vite playground",
     "size": "npm run build && size-limit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:site": "tsc -p playground"
   },
   "size-limit": [
     {
@@ -95,6 +97,7 @@
     "@size-limit/preset-small-lib": "^12.1.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.0.1",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^6.0.3",
