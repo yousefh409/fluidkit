@@ -145,4 +145,45 @@ describe("Droplets", () => {
     expect(root.style.width).toBe("120px"); // size + spread
     expect(root.style.height).toBe("120px");
   });
+
+  it("clamps speed with the MIN_SPEED floor — speed={0} still advances the merge/split cycle", async () => {
+    // Capture the frame callback instead of letting rAF drive it, so the
+    // test can hand the loop a controlled delta: at the MIN_SPEED floor
+    // (0.01) one 200 000 ms frame crosses the 1500 ms cycle, flips the
+    // squeeze phase, and retargets the drop springs. Unclamped (the
+    // regression), delta * 0 advances nothing and the scene stays
+    // byte-identical forever.
+    vi.resetModules();
+    const frames: Array<(time: number, delta: number) => void> = [];
+    vi.doMock("motion/react", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("motion/react")>();
+      return {
+        ...actual,
+        useReducedMotion: () => false,
+        useAnimationFrame: (cb: (time: number, delta: number) => void) => {
+          frames.push(cb);
+        },
+      };
+    });
+    const { Droplets } = await import("../../src/components/Droplets");
+
+    const { container } = render(<Droplets speed={0} />);
+    const clip = container.querySelector(
+      '[data-fluidkit="liquid-clip"]'
+    ) as HTMLElement;
+    const initialPath = clip.style.clipPath;
+    expect(initialPath).toContain("path(");
+    expect(frames.length).toBeGreaterThan(0);
+    const frame = frames[frames.length - 1];
+
+    // One huge frame crosses the cycle at the clamped floor (phase flip →
+    // spring retarget)…
+    frame(0, 200_000);
+    // …give Motion's own loop a beat to move the retargeted springs…
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    // …then let the loop write a scene from the moved values.
+    frame(0, 16);
+
+    expect(clip.style.clipPath).not.toBe(initialPath);
+  });
 });

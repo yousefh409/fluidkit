@@ -92,11 +92,16 @@ Nothing else from `src/liquid` leaks: `LiquidRenderer`, `TensionField`, geometry
 
 ## Verdict counts
 
-- keep: 34
-- document (JSDoc/docs fixes applied): 20
+Counted per review-table row above. Rows carrying two verdicts ("keep + document", "fix default + document") count once under the stronger action; the internal `supportsWebGL` row is excluded (never public, so in neither total).
+
+- keep: 24
+- document (JSDoc/docs fixes applied): 22
 - fix default: 1 (`Droplets.speed` MIN_SPEED clamp)
 - add: 3 (`LiquidMaterial`, `Vec`, `SpringConfig` type re-exports)
 - remove: 1 (`supportsViewTransition`)
+- total: 51 public rows
+
+Reconciliation at the symbol level: rows and symbols differ only where rows group several exports (the three grouped hook-type rows cover 12 type exports; the `useInView` / `UseInViewResult` row covers 2), so the 51 public rows cover 61 symbols = 58 pre-existing public exports reviewed (31 component + 15 hook + 8 util + 4 GPU subpath) + the 3 new type re-exports. The live surface after the pass is 60 exported symbols (58 pre-existing − 1 removed + 3 added).
 
 ## Breaking changes
 
