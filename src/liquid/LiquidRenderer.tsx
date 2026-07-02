@@ -19,24 +19,12 @@ import { useId } from "react";
 import type { ResolvedMaterial } from "./materials";
 import type { SpecularSpot } from "./specular";
 
-export interface FillBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface LiquidRendererProps {
   /** Concatenated SVG subpaths for `clip-path: path(...)`. */
   path: string;
   material: ResolvedMaterial;
   speculars?: SpecularSpot[];
   shadow?: boolean;
-  /**
-   * Scopes gradient materials (mercury) to the liquid's bounding box, so the
-   * gradient shades the mass itself instead of smearing across the stage.
-   */
-  fillBox?: FillBox;
   /**
    * Clips the content overlay to the liquid shape so content is revealed
    * from within the surface as it grows (never scaled — only clipped).
@@ -53,20 +41,12 @@ export function LiquidRenderer({
   material,
   speculars = [],
   shadow = false,
-  fillBox,
   clipContent = false,
   children,
 }: LiquidRendererProps) {
   const gradientId = useId();
   const clipPath = `path('${path}')`;
   const showSpec = material.specular && speculars.length > 0;
-  const fillScope: CSSProperties = fillBox
-    ? {
-        backgroundSize: `${fillBox.width}px ${fillBox.height}px`,
-        backgroundPosition: `${fillBox.x}px ${fillBox.y}px`,
-        backgroundRepeat: "no-repeat",
-      }
-    : {};
 
   return (
     <>
@@ -88,7 +68,7 @@ export function LiquidRenderer({
       <div data-fluidkit="liquid-clip" style={{ ...layer, clipPath }}>
         <div
           data-fluidkit="liquid-fill"
-          style={{ ...layer, ...material.fillStyle, ...fillScope }}
+          style={{ ...layer, ...material.fillStyle }}
         />
       </div>
       {showSpec && (

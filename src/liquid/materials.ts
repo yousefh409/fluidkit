@@ -4,8 +4,8 @@
  *
  * - glass: white tint + backdrop blur/saturation, lit by the scene light.
  *   Degrades to a frosted flat fill when backdrop-filter is unsupported.
- * - mercury: metallic gradient. No painted highlight — the gradient IS the
- *   reflection.
+ * - mercury: solid liquid-metal fill. No gradient, no painted highlight —
+ *   the shape and motion carry the metal read.
  * - flat: plain color; also the reduced/fallback rendering.
  */
 
@@ -32,8 +32,7 @@ export interface ResolvedMaterial {
 const GLASS_TINT = "rgba(255,255,255,0.3)";
 const GLASS_BACKDROP = "blur(16px) saturate(1.8)";
 const GLASS_FALLBACK_FILL = "rgba(255,255,255,0.65)";
-export const MERCURY_GRADIENT =
-  "linear-gradient(150deg, #fdfdfe 0%, #ccd1d9 36%, #8d94a1 64%, #b7bcc7 84%, #e8eaef 100%)";
+const MERCURY_FILL = "#aab0bb";
 
 export function resolveMaterial(
   material: LiquidMaterial,
@@ -60,7 +59,7 @@ export function resolveMaterial(
   if (material === "mercury") {
     return {
       kind: "mercury",
-      fillStyle: { background: MERCURY_GRADIENT },
+      fillStyle: { background: options.color ?? MERCURY_FILL },
       specular: false,
     };
   }

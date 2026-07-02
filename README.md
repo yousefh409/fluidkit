@@ -50,8 +50,8 @@ function App() {
 
 `MorphSurface`, `Droplets`, and `Thinking` take `material`:
 
-- `glass` — white tint + backdrop blur/saturation, specular highlights from one configurable scene light (`light` prop). A drop of water is liquid glass.
-- `mercury` — metallic gradient; no painted highlight (the gradient is the reflection).
+- `glass` — white tint + backdrop blur/saturation, specular highlights from one configurable scene light (`light` prop), toggleable via `reflection`. A drop of water is liquid glass.
+- `mercury` — solid liquid metal; no gradient, no painted highlight.
 - `flat` — plain color; also the automatic fallback when `backdrop-filter` is unsupported.
 
 ## Cross-cutting guarantees

@@ -56,21 +56,24 @@ const MATERIALS: LiquidMaterial[] = ["glass", "mercury", "flat"];
 function DropletsDemo() {
   const [count, setCount] = useState(3), [size, setSize] = useState(36), [spread, setSpread] = useState(110), [speed, setSpeed] = useState(1);
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
+  const [reflection, setReflection] = useState(true);
   return <Card title="Droplets" desc="Liquid drops with surface tension: touch-connect, stretch, snap. Your pointer drop merges with the cluster." hint="move pointer — your drop is alive" wall
-    stage={<Droplets followPointer count={count} size={size} spread={spread} speed={speed} material={material} color="#8d94a1" />}
-    controls={<><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /><Slider label="count" value={count} set={setCount} min={1} max={5} /><Slider label="size" value={size} set={setSize} min={20} max={64} /><Slider label="spread" value={spread} set={setSpread} min={40} max={160} /><Slider label="speed" value={speed} set={setSpeed} min={0.2} max={3} step={0.1} /></>} />;
+    stage={<Droplets followPointer count={count} size={size} spread={spread} speed={speed} material={material} reflection={reflection} color="#8d94a1" />}
+    controls={<><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /><Toggle label="reflection" value={reflection} set={setReflection} /><Slider label="count" value={count} set={setCount} min={1} max={5} /><Slider label="size" value={size} set={setSize} min={20} max={64} /><Slider label="spread" value={spread} set={setSpread} min={40} max={160} /><Slider label="speed" value={speed} set={setSpeed} min={0.2} max={3} step={0.1} /></>} />;
 }
 
 function MorphDemo() {
   const [open, setOpen] = useState(false);
   const [satellites, setSatellites] = useState(true);
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
+  const [reflection, setReflection] = useState(true);
   return <Card title="MorphSurface" desc="One liquid body: pill morphs into panel, satellite droplets absorbed through real bridges. Text only cross-fades — never scales." hint="click — droplets absorb into the panel" wall
     onStageClick={() => setOpen((v) => !v)}
     stage={
       <MorphSurface
         open={open}
         material={material}
+        reflection={reflection}
         satellites={satellites}
         closedContent={<div className="pill-label"><span className="dot" />Ask fluidkit</div>}
         openContent={
@@ -83,7 +86,7 @@ function MorphDemo() {
         }
       />
     }
-    controls={<><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /><Toggle label="satellites" value={satellites} set={setSatellites} /></>} />;
+    controls={<><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /><Toggle label="reflection" value={reflection} set={setReflection} /><Toggle label="satellites" value={satellites} set={setSatellites} /></>} />;
 }
 
 function ThinkingDemo() {
@@ -95,8 +98,8 @@ function ThinkingDemo() {
 }
 
 function MercuryDemo() {
-  return <Card title="Droplets (mercury)" desc="Identical engine, mercury material: metallic gradient, no painted highlight. Materials are a prop, not separate components." hint="same engine, different material"
-    stage={<Droplets material="mercury" light={null} spread={110} />} />;
+  return <Card title="Droplets (mercury)" desc="Identical engine, mercury material: solid liquid metal, no gradient, no highlight. Materials are a prop, not separate components." hint="same engine, different material"
+    stage={<Droplets material="mercury" spread={110} />} />;
 }
 
 function FlowDemo() {
@@ -118,7 +121,7 @@ function TabsDemo() {
 function RippleDemo() {
   const [duration, setDuration] = useState(650);
   return <Card title="Ripple" desc="Water ripple expands from the pointer on tap, clipped to the surface." hint="tap the surface" wall
-    stage={<Ripple color="#4a6cf7" duration={duration} style={{ display: "grid", placeItems: "center", width: 210, height: 92, borderRadius: 20, cursor: "pointer", userSelect: "none", background: "rgba(255,255,255,.55)", backdropFilter: "blur(14px) saturate(1.6)", WebkitBackdropFilter: "blur(14px) saturate(1.6)", color: "#23242c", fontSize: 14, fontWeight: 650, boxShadow: "inset 0 1px 0 rgba(255,255,255,.6), 0 10px 28px rgba(46,44,72,.16)" }}>Tap me</Ripple>}
+    stage={<Ripple material="glass" duration={duration} style={{ display: "grid", placeItems: "center", width: 210, height: 92, borderRadius: 20, cursor: "pointer", userSelect: "none", background: "rgba(255,255,255,.55)", backdropFilter: "blur(14px) saturate(1.6)", WebkitBackdropFilter: "blur(14px) saturate(1.6)", color: "#23242c", fontSize: 14, fontWeight: 650, boxShadow: "inset 0 1px 0 rgba(255,255,255,.6), 0 10px 28px rgba(46,44,72,.16)" }}>Tap me</Ripple>}
     controls={<Slider label="duration" value={duration} set={setDuration} min={200} max={2000} step={50} suffix="ms" />} />;
 }
 

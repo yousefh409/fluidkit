@@ -13,6 +13,6 @@ export type {
   ResolvedMaterial,
   ResolveMaterialOptions,
 } from "./materials";
-export { resolveMaterial, MERCURY_GRADIENT } from "./materials";
+export { resolveMaterial } from "./materials";
 export { LiquidRenderer } from "./LiquidRenderer";
-export type { LiquidRendererProps, FillBox } from "./LiquidRenderer";
+export type { LiquidRendererProps } from "./LiquidRenderer";

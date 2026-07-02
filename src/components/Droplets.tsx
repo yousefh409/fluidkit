@@ -20,13 +20,7 @@ import {
   resolveMaterial,
   specularPlacement,
 } from "../liquid";
-import type {
-  FillBox,
-  LiquidBody,
-  LiquidMaterial,
-  SpecularSpot,
-  Vec,
-} from "../liquid";
+import type { LiquidBody, LiquidMaterial, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -50,6 +44,8 @@ export interface DropletsProps extends HTMLAttributes<HTMLDivElement> {
    * specular highlights. Defaults to above the stage, 30% from the left.
    */
   light?: Vec | null;
+  /** Paint specular reflections on glass. Defaults to `true`. */
+  reflection?: boolean;
   /** An extra drop chases the pointer and merges with the cluster. */
   followPointer?: boolean;
   /** Deterministic per-instance layout offset. */
@@ -102,6 +98,7 @@ export function Droplets({
   tint,
   color,
   light,
+  reflection = true,
   followPointer = false,
   seed = 0,
   className,
@@ -122,7 +119,8 @@ export function Droplets({
     () => resolveMaterial(material, { tint, color }),
     [material, tint, color]
   );
-  const sceneLight = light === undefined ? defaultLight(side, side) : light;
+  const sceneLight =
+    !reflection || light === null ? null : light ?? defaultLight(side, side);
 
   // x/y springs per drop, interleaved [x0, y0, x1, y1, ...]
   const springs = useMotionSprings(
@@ -226,11 +224,6 @@ export function Droplets({
         path={animating ? scene.path : staticScene.path}
         material={resolved}
         speculars={animating ? scene.speculars : staticScene.speculars}
-        fillBox={
-          resolved.kind === "mercury"
-            ? (animating ? scene : staticScene).box
-            : undefined
-        }
         shadow
       />
     </div>
@@ -244,8 +237,6 @@ function bodyAt(home: Home, center: number, index: number): LiquidBody {
 interface Scene {
   path: string;
   speculars: SpecularSpot[];
-  /** Bounding box of the liquid mass — scopes gradient materials. */
-  box: FillBox;
 }
 
 function buildScene(
@@ -259,19 +250,5 @@ function buildScene(
   if (bridged && tension) path += tension.bridges(bodies);
   const speculars =
     wantSpecular && light ? bodies.map((b) => specularPlacement(b, light)) : [];
-  return { path, speculars, box: boundsOf(bodies) };
-}
-
-function boundsOf(bodies: LiquidBody[]): FillBox {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const b of bodies) {
-    minX = Math.min(minX, b.x - b.r);
-    minY = Math.min(minY, b.y - b.r);
-    maxX = Math.max(maxX, b.x + b.r);
-    maxY = Math.max(maxY, b.y + b.r);
-  }
-  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  return { path, speculars };
 }

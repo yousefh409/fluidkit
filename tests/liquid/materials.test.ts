@@ -38,11 +38,18 @@ describe("resolveMaterial", () => {
     expect(m.specular).toBe(true); // still lit — it is still "glass" to the user
   });
 
-  it("mercury: gradient fill, NO specular", async () => {
+  it("mercury: SOLID fill (no gradient), NO specular", async () => {
     const { resolveMaterial } = await loadWithBackdropSupport(true);
     const m = resolveMaterial("mercury");
     expect(m.specular).toBe(false);
-    expect(String(m.fillStyle.background)).toContain("linear-gradient");
+    expect(String(m.fillStyle.background)).not.toContain("gradient");
+    expect(m.fillStyle.background).toBe("#aab0bb");
+  });
+
+  it("mercury: honors a custom color", async () => {
+    const { resolveMaterial } = await loadWithBackdropSupport(true);
+    const m = resolveMaterial("mercury", { color: "#8d94a1" });
+    expect(m.fillStyle.background).toBe("#8d94a1");
   });
 
   it("flat: plain color fill, no specular, defaults to currentColor", async () => {

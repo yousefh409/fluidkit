@@ -56,6 +56,14 @@ describe("Droplets", () => {
     expect(container.querySelectorAll("ellipse")).toHaveLength(0);
   });
 
+  it("disables speculars when reflection is false", async () => {
+    const Droplets = await loadDroplets(true);
+    const { container } = render(
+      <Droplets material="glass" reflection={false} />
+    );
+    expect(container.querySelectorAll("ellipse")).toHaveLength(0);
+  });
+
   it("sizes the container from size + spread and merges consumer style/className", async () => {
     const Droplets = await loadDroplets(true);
     const { container } = render(

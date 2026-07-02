@@ -19,13 +19,7 @@ import {
   roundRectPath,
   specularPlacement,
 } from "../liquid";
-import type {
-  FillBox,
-  LiquidBody,
-  LiquidMaterial,
-  SpecularSpot,
-  Vec,
-} from "../liquid";
+import type { LiquidBody, LiquidMaterial, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -47,6 +41,8 @@ export interface MorphSurfaceProps
   color?: string;
   /** Scene light; null disables speculars. */
   light?: Vec | null;
+  /** Paint specular reflections on glass. Defaults to `true`. */
+  reflection?: boolean;
   /** Satellite droplets absorbed into the surface on open. */
   satellites?: boolean;
   /** Content shown on the closed pill. */
@@ -79,6 +75,7 @@ export function MorphSurface({
   tint,
   color,
   light,
+  reflection = true,
   satellites = true,
   closedContent,
   openContent,
@@ -106,7 +103,10 @@ export function MorphSurface({
     () => resolveMaterial(material, { tint, color }),
     [material, tint, color]
   );
-  const sceneLight = light === undefined ? defaultLight(width, height) : light;
+  const sceneLight =
+    !reflection || light === null
+      ? null
+      : light ?? defaultLight(width, height);
 
   // [w, h, sat0pos, sat0r, sat1pos, sat1r]
   const springs = useMotionSprings(
@@ -222,7 +222,6 @@ export function MorphSurface({
         path={activeScene.path}
         material={resolved}
         speculars={activeScene.speculars}
-        fillBox={resolved.kind === "mercury" ? activeScene.box : undefined}
         shadow
         clipContent
       >
@@ -264,8 +263,6 @@ function targetSpringValues(
 interface Scene {
   path: string;
   speculars: SpecularSpot[];
-  /** Bounding box of the surface body — scopes gradient materials. */
-  box: FillBox;
 }
 
 function buildMorphScene(
@@ -314,11 +311,5 @@ function buildMorphScene(
       specularPlacement({ x: cx, y: cy, r: Math.min(w, h) * 0.48 }, light, 0.28)
     );
   }
-  const box: FillBox = {
-    x: cx - w / 2,
-    y: cy - h / 2,
-    width: w,
-    height: h,
-  };
-  return { path, speculars, box };
+  return { path, speculars };
 }
