@@ -7,7 +7,15 @@ export { MorphSurface } from "./MorphSurface";
 export type { MorphSurfaceProps, MorphSize } from "./MorphSurface";
 export { FlowStagger } from "./FlowStagger";
 export type { FlowStaggerProps } from "./FlowStagger";
-export { LiquidTabs } from "./LiquidTabs";
-export type { LiquidTabsProps, LiquidTabsItem } from "./LiquidTabs";
+export { LiquidTabs } from "./tabs";
+export type {
+  LiquidTabsProps,
+  LiquidTabsItem,
+  LiquidTabsMaterial,
+  LiquidTabsSize,
+  TabsGroupProps,
+  TabPanelProps,
+  FlowName,
+} from "./tabs";
 export { Ripple } from "./Ripple";
 export type { RippleProps } from "./Ripple";
