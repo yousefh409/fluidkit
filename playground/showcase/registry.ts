@@ -41,5 +41,6 @@ export const REGISTRY: ShowcasePage[] = [
   { slug: "drip-fuse", title: "DripFuse", load: () => import("./pages/DripFuse") },
   { slug: "mesh-gradient", title: "MeshGradient", load: () => import("./pages/MeshGradient") },
   { slug: "aurora", title: "Aurora", load: () => import("./pages/Aurora") },
+  { slug: "liquid-metal", title: "LiquidMetal", load: () => import("./pages/LiquidMetal"), isGpu: true },
   { slug: "water-field", title: "WaterField", load: () => import("./pages/WaterField"), isGpu: true },
 ];
