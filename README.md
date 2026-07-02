@@ -85,11 +85,11 @@ The playground doubles as the public docs site: hero, live demos, controls, and 
 
 ## Development
 
-- `npm test` — Run tests
-- `npm run typecheck` — Type check the library
-- `npm run size` — Check bundle size (8.7 kB brotli budget via size-limit)
-- `npm run check:gpu-leak` — Guard against GPU dependencies
-- `npm run check:pack` — Verify npm pack contents
+- `npm test`: run tests
+- `npm run typecheck`: type check the library
+- `npm run size`: check bundle size (8.7 kB brotli budget on the core entry via size-limit)
+- `npm run check:gpu-leak`: guard against GPU dependencies
+- `npm run check:pack`: verify npm pack contents
 
 All guards run in CI (Node 20 and 24).
 
