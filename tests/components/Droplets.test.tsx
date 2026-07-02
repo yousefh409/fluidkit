@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
+import { Profiler } from "react";
 
 /** Same mocking pattern as the other component tests. */
 async function loadDroplets(reduced: boolean) {
@@ -62,6 +63,21 @@ describe("Droplets", () => {
       <Droplets material="glass" reflection={false} />
     );
     expect(container.querySelectorAll("ellipse")).toHaveLength(0);
+  });
+
+  it("commits no React updates during the animation loop (scenes go through the imperative handle)", async () => {
+    const Droplets = await loadDroplets(false);
+    const onRender = vi.fn();
+    render(
+      <Profiler id="droplets" onRender={onRender}>
+        <Droplets />
+      </Profiler>
+    );
+    const commitsAfterMount = onRender.mock.calls.length;
+    // Several rAF ticks: the merge/split loop keeps animating, but every
+    // frame must be an imperative DOM write, never a React commit.
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(onRender.mock.calls.length).toBe(commitsAfterMount);
   });
 
   it("sizes the container from size + spread and merges consumer style/className", async () => {

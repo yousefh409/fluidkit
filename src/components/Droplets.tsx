@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties, HTMLAttributes } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAnimationFrame } from "motion/react";
 import {
   LiquidRenderer,
@@ -20,7 +20,13 @@ import {
   resolveMaterial,
   specularPlacement,
 } from "../liquid";
-import type { LiquidBody, LiquidMaterial, SpecularSpot, Vec } from "../liquid";
+import type {
+  LiquidBody,
+  LiquidMaterial,
+  LiquidSceneHandle,
+  SpecularSpot,
+  Vec,
+} from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -137,6 +143,7 @@ export function Droplets({
   const tension = useRef(new TensionField());
   const phase = useRef(0);
   const cycleT = useRef(0);
+  const renderer = useRef<LiquidSceneHandle>(null);
 
   const staticScene = useMemo(
     () =>
@@ -149,7 +156,13 @@ export function Droplets({
       ),
     [homes, center, resolved.specular, sceneLight]
   );
-  const [scene, setScene] = useState(staticScene);
+
+  // The loop mutates the DOM behind React's back; when it stops (reduced
+  // motion, scrolled off-screen) or the declarative scene changes, resync so
+  // the static rendering wins again.
+  useEffect(() => {
+    if (!animating) renderer.current?.setScene(staticScene);
+  }, [animating, staticScene]);
 
   useAnimationFrame((_, delta) => {
     if (!animating) return;
@@ -176,7 +189,7 @@ export function Droplets({
         r: size * 0.38,
       });
     }
-    setScene(
+    renderer.current?.setScene(
       buildScene(bodies, tension.current, resolved.specular, sceneLight, true)
     );
   });
@@ -221,9 +234,11 @@ export function Droplets({
       {...rest}
     >
       <LiquidRenderer
-        path={animating ? scene.path : staticScene.path}
+        ref={renderer}
+        path={staticScene.path}
         material={resolved}
-        speculars={animating ? scene.speculars : staticScene.speculars}
+        speculars={staticScene.speculars}
+        specularSlots={resolved.specular && sceneLight ? count + 1 : 0}
         shadow
       />
     </div>
