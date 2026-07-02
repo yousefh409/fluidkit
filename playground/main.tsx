@@ -71,8 +71,7 @@ function FluidMorph({ color, blobs, wobble, stiffness, damping }: {
 }) {
   const [open, setOpen] = useState(true);
   const spring = { type: "spring" as const, stiffness, damping, mass: 1.15 };
-  const { surfaceProps, contentProps } = useMorph({ open, transition: spring });
-  const { key, ...restContent } = contentProps;
+  const { surfaceProps } = useMorph({ open, transition: spring });
   const goo = useGoo();
   const W = open ? 300 : 190, H = open ? 190 : 52;
   const base = Math.min(W, H);
@@ -99,9 +98,18 @@ function FluidMorph({ color, blobs, wobble, stiffness, damping }: {
             ))}
           </div>
         </div>
-        {/* crisp content layer */}
-        <div style={{ position: "absolute", inset: 0, padding: 18, color: "#141417" }}>
-          <motion.div key={key} {...restContent}>
+        {/* crisp content layer — CLIPPED to the morph box so it is revealed
+            from within the surface as it grows, never flying in from outside;
+            fades in place (opacity only) and slightly delayed so the surface
+            has room before content appears. */}
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 24 }}>
+          <motion.div
+            key={open ? "open" : "closed"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.28, delay: open ? 0.16 : 0.04 }}
+            style={{ position: "absolute", inset: 0, padding: 18, color: "#141417" }}
+          >
             {open ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div style={{ fontWeight: 650, fontSize: 13, display: "flex", gap: 8, alignItems: "center" }}>
