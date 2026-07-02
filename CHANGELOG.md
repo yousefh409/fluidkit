@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **MeshGradient.** Ambient CSS backdrop: 3-4 large, softly blurred radial-gradient blobs drift on long-period (`speed`-scaled) `@keyframes` transform loops, zero per-frame JS once mounted. Blob placement and phase are deterministic (golden-angle spread, no `Math.random`). Reduced motion drops the keyframes entirely; off-screen pauses `animation-play-state` instead of tearing the loop down.
+- **Aurora.** Ambient CSS backdrop: blurred horizontal bands drift and sway across the upper portion of the container, composited via a configurable `blend` (`screen` | `normal` | `multiply`) so the aurora-glow read works on dark surfaces and degrades gracefully to opacity or ink-wash compositing on light ones. Same deterministic placement, reduced-motion, and off-screen rules as `MeshGradient`.
+- **Bundle-size budget re-pinned.** 14.9 kB brotli on the core entry via size-limit (up from 11.6 kB: measured 12.39 kB with `MeshGradient` + `Aurora` plus 20% headroom).
 - **JellyButton.** An engine pill button that squashes on press via geometry, not a CSS transform, so the label never scales. Real `<button>` semantics (focus, Enter/Space, `disabled`); volume-preserving squash with spring-overshoot jiggle on release; material/tint/light/reflection/refraction passthrough. Reduced motion keeps a fully functional button with an opacity press dip only.
 - **useSquish.** Headless press-squash hook: volume-preserving `scaleX`/`scaleY` Motion values plus pointer/keyboard handlers, for jelly-pressing arbitrary elements via CSS transform. Reduced motion makes pressing inert.
 - **Magnetic.** Behavior wrapper that pulls its child toward the pointer within a `radius` (linear falloff, travel hard-capped at `radius / 2`) and springs back outside it. Window-level tracking attaches only while on screen; reduced motion attaches nothing.
