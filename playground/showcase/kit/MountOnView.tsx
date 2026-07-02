@@ -6,7 +6,9 @@ import type { ReactNode } from "react";
  * and never unmounts them after. The GPU demos boot a real WebGL context on
  * mount (and WaterField keeps issuing draw calls each frame even while
  * paused), so mounting them eagerly would bill every docs visitor for live
- * GPU contexts at page load, for stages further down the page.
+ * GPU contexts at page load — e.g. a variant grid of GPU cells below the
+ * fold. Renders `position: absolute; inset: 0`, so it must be a direct child
+ * of a Stage (or another positioned container) to fill it.
  */
 export function MountOnView({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
