@@ -61,6 +61,8 @@ A softer, non-interactive ambient field:
 1. **`hover` in the sim config**: when `true`, plain pointer movement over the canvas triggers splats (no mousedown/drag required).
 2. **`pointer-events` on the `<canvas>`**: fluidkit's wrapper keeps `pointer-events: none` on the outer div (consistent with every other fluidkit ambient primitive), but the `<canvas>` child gets an explicit `pointer-events: auto` override when `interactive` is true. A child's explicit `pointer-events` value always wins over an ancestor's `none`, so this re-enables hit-testing on just the canvas without touching the wrapper's own contract. `aria-hidden` stays on the wrapper regardless: it is still decorative to assistive tech, splats or not.
 
+Because the interactive canvas accepts pointer events, sibling content layered over the field needs `position: relative` (or any positioning that lifts it into a stacking context above the canvas) so it paints and hit-tests above the field; otherwise the canvas steals clicks meant for your content.
+
 ## The `config` escape hatch
 
 `config` forwards raw options directly to `webgl-fluid-enhanced`'s `setConfig()`, applied after `colors`/`intensity`/`interactive` above, so any key set there wins:

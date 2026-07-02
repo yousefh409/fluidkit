@@ -1,4 +1,4 @@
-import { StrictMode, useRef, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { CSSProperties, ReactNode } from "react";
 import {
@@ -460,6 +460,28 @@ function AuroraDemo() {
 }
 
 /* ------------------------- optional GPU tier ------------------------- */
+/**
+ * Site chrome: mounts children the FIRST time the stage scrolls into view,
+ * and never unmounts them after. The GPU demos below boot a real WebGL
+ * context on mount (and WaterField keeps issuing draw calls each frame even
+ * while paused), so mounting them eagerly would bill every docs visitor for
+ * two live GPU contexts at page load, for cards at the bottom of the page.
+ */
+function MountOnView({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || seen) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setSeen(true);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [seen]);
+  return <div ref={ref} style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{seen ? children : null}</div>;
+}
+
 type LiquidMetalPreset = "mercury" | "gold" | "obsidian";
 const LIQUID_METAL_PRESET_KEYS: LiquidMetalPreset[] = ["mercury", "gold", "obsidian"];
 /** color/backgroundColor pairs; "mercury" mirrors the shader's own default look. */
@@ -484,13 +506,13 @@ function LiquidMetalDemo() {
   intensity={${intensity}}
 />`}
     stage={
-      <>
+      <MountOnView>
         <LiquidMetal color={color} backgroundColor={backgroundColor} speed={speed} intensity={intensity} />
         <div style={{ position: "relative", background: "rgba(255,255,255,.72)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderRadius: 16, padding: "16px 20px", textAlign: "center", boxShadow: "0 10px 28px rgba(46,44,72,.12)" }}>
-          <div style={{ fontWeight: 650, fontSize: 13, color: "#23242c", marginBottom: 3 }}>Loading</div>
+          <div style={{ fontWeight: 650, fontSize: 13, color: "#23242c", marginBottom: 3 }}>Now Playing</div>
           <div style={{ fontSize: 11.5, color: "#6b6c75" }}>LiquidMetal is the layer behind this card</div>
         </div>
-      </>
+      </MountOnView>
     }
     controls={<><Seg label="preset" value={preset} set={setPreset} options={LIQUID_METAL_PRESET_KEYS} /><Slider label="speed" value={speed} set={setSpeed} min={0.1} max={3} step={0.1} /><Slider label="intensity" value={intensity} set={setIntensity} min={0} max={0.3} step={0.01} /></>} />;
 }
@@ -517,7 +539,7 @@ function WaterFieldDemo() {
   intensity={${intensity}}
   interactive={${interactive}}
 />`}
-    stage={<WaterField colors={colors} intensity={intensity} interactive={interactive} />}
+    stage={<MountOnView><WaterField colors={colors} intensity={intensity} interactive={interactive} /></MountOnView>}
     controls={<><Seg label="colors" value={preset} set={setPreset} options={WATER_FIELD_PRESET_KEYS} /><Slider label="intensity" value={intensity} set={setIntensity} min={0.1} max={1} step={0.05} /><Toggle label="interactive" value={interactive} set={setInteractive} /></>} />;
 }
 
