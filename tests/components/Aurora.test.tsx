@@ -100,6 +100,46 @@ describe("Aurora", () => {
     });
   });
 
+  it("defaults blend to screen and maps the blend prop onto mix-blend-mode", async () => {
+    const Aurora = await loadAurora(false);
+    const byDefault = render(<Aurora colors={["#ff0000"]} />);
+    const normal = render(<Aurora colors={["#ff0000"]} blend="normal" />);
+    const multiply = render(<Aurora colors={["#ff0000"]} blend="multiply" />);
+
+    expect(bands(byDefault.container)[0].style.mixBlendMode).toBe("screen");
+    expect(bands(normal.container)[0].style.mixBlendMode).toBe("normal");
+    expect(bands(multiply.container)[0].style.mixBlendMode).toBe("multiply");
+  });
+
+  it("bumps band opacity under blend=normal so bands read without screen compositing, capped at 1", async () => {
+    const Aurora = await loadAurora(false);
+    const screen = render(<Aurora colors={["#ff0000"]} intensity={0.5} />);
+    const normal = render(
+      <Aurora colors={["#ff0000"]} intensity={0.5} blend="normal" />
+    );
+    const maxed = render(
+      <Aurora colors={["#ff0000"]} intensity={1} blend="normal" />
+    );
+
+    const screenOpacity = parseFloat(bands(screen.container)[0].style.opacity);
+    const normalOpacity = parseFloat(bands(normal.container)[0].style.opacity);
+    expect(normalOpacity).toBeGreaterThan(screenOpacity);
+    expect(
+      parseFloat(bands(maxed.container)[0].style.opacity)
+    ).toBeLessThanOrEqual(1);
+  });
+
+  it("wires the per-band skew custom property into the injected keyframes", async () => {
+    const Aurora = await loadAurora(false);
+    const { container } = render(<Aurora colors={["#ff0000"]} />);
+
+    bands(container).forEach((el) => {
+      expect(el.style.getPropertyValue("--fluidkit-aurora-skew")).toMatch(/deg$/);
+    });
+    const style = document.getElementById("fluidkit-aurora-keyframes");
+    expect(style?.textContent).toContain("var(--fluidkit-aurora-skew)");
+  });
+
   it("scales band opacity by the intensity prop", async () => {
     const Aurora = await loadAurora(false);
     const low = render(<Aurora colors={["#ff0000"]} intensity={0.2} />);

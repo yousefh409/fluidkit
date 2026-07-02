@@ -28,7 +28,11 @@
 import type { CSSProperties, HTMLAttributes } from "react";
 import { useEffect, useMemo } from "react";
 import { resolveColor, useInView, usePrefersReducedMotion } from "../utils";
-import { GOLDEN_ANGLE, GOLDEN_RATIO_FRAC } from "../utils/constants";
+import {
+  GOLDEN_ANGLE,
+  GOLDEN_RATIO_FRAC,
+  MIN_SPEED,
+} from "../utils/constants";
 import { injectStyleOnce } from "../utils/injectStyleOnce";
 
 export interface MeshGradientProps extends HTMLAttributes<HTMLDivElement> {
@@ -73,10 +77,6 @@ const KEYFRAMES_CSS = `
 function blobAngle(index: number): number {
   return index * GOLDEN_ANGLE;
 }
-
-/** Minimum drift speed multiplier — kills the divide-by-zero `Infinity`
- * keyframe duration a `speed={0}` (or negative) prop would otherwise produce. */
-const MIN_SPEED = 0.01;
 
 interface Blob {
   color: string;

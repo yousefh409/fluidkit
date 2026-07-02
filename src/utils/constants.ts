@@ -16,3 +16,8 @@ export const GOLDEN_ANGLE = 2.399963;
 
 /** Fractional part of the golden ratio, used as a deterministic per-index phase offset in [0, 1). */
 export const GOLDEN_RATIO_FRAC = 0.618034;
+
+/** Minimum drift speed multiplier for ambient backgrounds — kills the
+ * divide-by-zero `Infinity` keyframe duration a `speed={0}` (or negative)
+ * prop would otherwise produce. */
+export const MIN_SPEED = 0.01;
