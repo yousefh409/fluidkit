@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process';
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
@@ -14,6 +13,7 @@ const requiredFiles = [
   'dist/index.d.ts',
   'dist/index.d.cts',
 ];
+const allowedRootFiles = requiredFiles.filter((file) => !file.startsWith('dist/'));
 
 let hasErrors = false;
 
@@ -21,9 +21,11 @@ try {
   const output = execFileSync('npm', ['pack', '--dry-run', '--json'], {
     cwd: rootDir,
     encoding: 'utf8',
+    shell: process.platform === 'win32',
   });
 
-  const data = JSON.parse(output);
+  // Slice from the first "[" to guard against lifecycle script output preceding the JSON
+  const data = JSON.parse(output.slice(output.indexOf('[')));
   const packedFiles = data[0].files.map((file) => file.path);
   const packedSet = new Set(packedFiles);
 
@@ -37,7 +39,7 @@ try {
 
   // Check for unexpected files
   for (const packed of packedFiles) {
-    const isRoot = ['package.json', 'README.md', 'LICENSE'].includes(packed);
+    const isRoot = allowedRootFiles.includes(packed);
     const isDist = packed.startsWith('dist/');
     if (!isRoot && !isDist) {
       console.error(`✗ Unexpected file in pack: ${packed}`);
@@ -53,5 +55,8 @@ try {
   process.exit(0);
 } catch (error) {
   console.error(`✗ Failed to check npm pack: ${error.message}`);
+  if (error.stderr) {
+    console.error(String(error.stderr));
+  }
   process.exit(1);
 }
