@@ -47,6 +47,10 @@ function App() {
 | [`FlowStagger`](docs/primitives/flow-stagger.md) | Staggered rise + un-blur entrance for list items, FLIP on reorder | Simple simultaneous fade |
 | [`LiquidTabs`](docs/primitives/liquid-tabs.md) | Tab indicator on the engine: mass flows across a tension bridge and snaps free | Plain pill, snaps instantly |
 | [`Ripple`](docs/primitives/ripple.md) | Pointer-origin water ripple on tap/click | No ripple, children render normally |
+| [`JellyButton`](docs/primitives/jelly-button.md) | Engine pill button that squashes on press via geometry; the label never scales | Normal button with an opacity press dip |
+| [`Magnetic`](docs/primitives/magnetic.md) | Pulls its child toward the pointer inside a radius, springs back outside it | No listener, element never moves |
+| [`LiquidDrag`](docs/primitives/liquid-drag.md) | Motion drag with velocity-driven volume-preserving stretch; wobbles back on release | Plain drag, scales pinned at 1 |
+| [`DripFuse`](docs/primitives/drip-fuse.md) | A drop tears off a source body, flies, and fuses into a target; one cycle per `fire` | Static bodies, `onComplete` fires instantly |
 
 ### Materials
 
@@ -87,7 +91,7 @@ The playground doubles as the public docs site: hero, live demos, controls, and 
 
 - `npm test`: run tests
 - `npm run typecheck`: type check the library
-- `npm run size`: check bundle size (8.7 kB brotli budget on the core entry via size-limit)
+- `npm run size`: check bundle size (11.6 kB brotli budget on the core entry via size-limit)
 - `npm run check:gpu-leak`: guard against GPU dependencies
 - `npm run check:pack`: verify npm pack contents
 

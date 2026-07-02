@@ -1,10 +1,14 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { CSSProperties, ReactNode } from "react";
 import {
+  DripFuse,
   Droplets,
   FlowStagger,
+  JellyButton,
+  LiquidDrag,
   LiquidTabs,
+  Magnetic,
   MorphSurface,
   Ripple,
   Thinking,
@@ -83,6 +87,7 @@ function Card({ id, title, desc, hint, wall, stage, controls, code, onStageClick
 }
 
 const MATERIALS: LiquidMaterial[] = ["glass", "mercury", "flat"];
+const AXES: ("free" | "x" | "y")[] = ["free", "x", "y"];
 
 /* ------------------------- hero ------------------------- */
 function Hero() {
@@ -106,6 +111,10 @@ function Hero() {
             ["liquid-tabs", "LiquidTabs"],
             ["flow-stagger", "FlowStagger"],
             ["ripple", "Ripple"],
+            ["jelly-button", "JellyButton"],
+            ["magnetic", "Magnetic"],
+            ["liquid-drag", "LiquidDrag"],
+            ["drip-fuse", "DripFuse"],
           ].map(([id, label]) => (
             <a key={id} href={`#${id}`}>{label}</a>
           ))}
@@ -288,6 +297,77 @@ function RippleDemo() {
     controls={<Slider label="duration" value={duration} set={setDuration} min={200} max={2000} step={50} suffix="ms" />} />;
 }
 
+function JellyButtonDemo() {
+  const [material, setMaterial] = useState<LiquidMaterial>("glass");
+  const [intensity, setIntensity] = useState(0.12);
+  return <Card id="jelly-button" title="JellyButton" desc="An engine pill that squashes on press via geometry, not a CSS transform, so the label never scales." hint="press and hold" wall
+    code={`<JellyButton material="${material}" intensity={${intensity}}>Press me</JellyButton>`}
+    stage={
+      <JellyButton
+        material={material}
+        intensity={intensity}
+        color={material === "flat" ? "#8d94a1" : undefined}
+        style={{ color: material === "flat" ? "#fff" : "#23242c", fontSize: 14, fontWeight: 650 }}
+      >
+        Press me
+      </JellyButton>
+    }
+    controls={<><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /><Slider label="intensity" value={intensity} set={setIntensity} min={0.02} max={0.3} step={0.01} /></>} />;
+}
+
+function MagneticDemo() {
+  const [strength, setStrength] = useState(0.3);
+  const [radius, setRadius] = useState(120);
+  return <Card id="magnetic" title="Magnetic" desc="Pulls its child toward the pointer while it's within radius px of the element's center, and springs back to rest outside that radius." hint="move your pointer near the dot"
+    code={`<Magnetic strength={${strength}} radius={${radius}}>
+  <Dot />
+</Magnetic>`}
+    stage={
+      <Magnetic strength={strength} radius={radius}>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(160deg, #4a6cf7, #7c9bff)", boxShadow: "0 10px 28px rgba(74,108,247,.35)" }} />
+      </Magnetic>
+    }
+    controls={<><Slider label="strength" value={strength} set={setStrength} min={0.05} max={1} step={0.05} /><Slider label="radius" value={radius} set={setRadius} min={40} max={240} step={10} suffix="px" /></>} />;
+}
+
+function LiquidDragDemo() {
+  const [elasticity, setElasticity] = useState(0.4);
+  const [axis, setAxis] = useState<"free" | "x" | "y">("free");
+  const constraintsRef = useRef<HTMLDivElement>(null);
+  return <Card id="liquid-drag" title="LiquidDrag" desc="Wraps Motion's own drag gesture; velocity feeds a volume-preserving stretch that wobbles back to rest on release." hint="drag the blob"
+    code={`<LiquidDrag elasticity={${elasticity}}${axis !== "free" ? ` axis="${axis}"` : ""}>
+  <Blob />
+</LiquidDrag>`}
+    stage={
+      <div ref={constraintsRef} style={{ position: "absolute", inset: 24 }}>
+        <LiquidDrag
+          elasticity={elasticity}
+          axis={axis === "free" ? undefined : axis}
+          dragConstraints={constraintsRef}
+          style={{ width: 72, height: 72, margin: "auto", position: "absolute", inset: 0, borderRadius: "50%", background: "linear-gradient(160deg, #63dcb9, #4fc9a3)", boxShadow: "0 10px 28px rgba(99,220,185,.4)", cursor: "grab" }}
+        />
+      </div>
+    }
+    controls={<><Slider label="elasticity" value={elasticity} set={setElasticity} min={0} max={1} step={0.05} /><Seg label="axis" value={axis} set={setAxis} options={AXES} /></>} />;
+}
+
+function DripFuseDemo() {
+  const [fire, setFire] = useState(0);
+  const [completions, setCompletions] = useState(0);
+  const [material, setMaterial] = useState<LiquidMaterial>("glass");
+  return <Card id="drip-fuse" title="DripFuse" desc="A drop swells off a source body, tears free, springs to a target, and fuses in: one trigger-and-complete cycle." hint={`fired ${fire} · completed ${completions}`} wall
+    code={`<DripFuse fire={fire} material="${material}" onComplete={() => setCount((c) => c + 1)} />`}
+    stage={
+      <DripFuse
+        fire={fire}
+        material={material}
+        color={material === "flat" ? "#8d94a1" : undefined}
+        onComplete={() => setCompletions((c) => c + 1)}
+      />
+    }
+    controls={<><button className="btn" onClick={() => setFire((f) => f + 1)}>Fire</button><Seg label="material" value={material} set={setMaterial} options={MATERIALS} /></>} />;
+}
+
 function App() {
   return (
     <>
@@ -300,6 +380,10 @@ function App() {
         <TabsDemo />
         <FlowDemo />
         <RippleDemo />
+        <JellyButtonDemo />
+        <MagneticDemo />
+        <LiquidDragDemo />
+        <DripFuseDemo />
       </div>
       <footer className="footer">
         MIT · <a href="https://github.com/yousefh409/fluidkit">github.com/yousefh409/fluidkit</a>
