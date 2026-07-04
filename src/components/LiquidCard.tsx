@@ -34,6 +34,7 @@ import {
   useRefraction,
 } from "../liquid";
 import type { SpecularSpot, Vec } from "../liquid";
+import { useThemedSurface } from "../theme";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
@@ -95,23 +96,25 @@ function buildCardScene(
   return { path, speculars };
 }
 
-export function LiquidCard({
-  material = "glass",
-  tint,
-  color,
-  variant = "default",
-  intensity = "whisper",
-  radius = 20,
-  padding = 20,
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  children,
-  className,
-  style,
-  ...rest
-}: LiquidCardProps) {
+export function LiquidCard(props: LiquidCardProps) {
+  const themed = useThemedSurface("LiquidCard");
+  const {
+    material = themed.material ?? "glass",
+    tint,
+    color,
+    variant = "default",
+    intensity = themed.intensity ?? "whisper",
+    radius = themed.radius ?? 20,
+    padding = 20,
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    children,
+    className,
+    style,
+    ...rest
+  } = props;
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
 
@@ -142,11 +145,11 @@ export function LiquidCard({
   const resolved = useMemo(
     () =>
       resolveMaterial(material, {
-        tint: tint ?? accent?.tint,
-        color: color ?? accent?.color,
+        tint: tint ?? accent?.tint ?? themed.tint,
+        color: color ?? accent?.color ?? themed.color,
         refractionUrl,
       }),
-    [material, tint, color, accent, refractionUrl]
+    [material, tint, color, accent, themed, refractionUrl]
   );
 
   const sceneLight = useMemo(() => {

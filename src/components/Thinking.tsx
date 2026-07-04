@@ -42,6 +42,7 @@ import type {
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
 export type ThinkingVariant = "gather" | "orbit" | "wave";
@@ -263,29 +264,33 @@ function buildScene(
   return { path, speculars };
 }
 
-export function Thinking({
-  variant = "gather",
-  label = "Thinking",
-  size = 18,
-  speed = 1,
-  material = "glass",
-  tint,
-  color,
-  light,
-  reflection = true,
-  refraction = false,
-  // Thinking's pre-pack specular opacity was `specularPlacement`'s own
-  // default (0.7) — nobody ever overrode it — which already equals the
-  // "present" preset exactly, so intensity maps straight through (no 0.4x
-  // scaling like LiquidButton/MorphSurface): default "present" reproduces
-  // today's 0.7 pixel-identically.
-  intensity = "present",
-  shadow = true,
-  seed = 0,
-  className,
-  style,
-  ...rest
-}: ThinkingProps) {
+export function Thinking(props: ThinkingProps) {
+  // Theme overlay: folds in below explicit props, above built-in defaults —
+  // with no provider mounted the overlay is empty and every default holds.
+  const themed = useThemedSurface("Thinking");
+  const {
+    variant = "gather",
+    label = "Thinking",
+    size = 18,
+    speed = 1,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    color = themed.color,
+    light,
+    reflection = true,
+    refraction = false,
+    // Thinking's pre-pack specular opacity was `specularPlacement`'s own
+    // default (0.7) — nobody ever overrode it — which already equals the
+    // "present" preset exactly, so intensity maps straight through (no 0.4x
+    // scaling like LiquidButton/MorphSurface): default "present" reproduces
+    // today's 0.7 pixel-identically.
+    intensity = themed.intensity ?? "present",
+    shadow = true,
+    seed = 0,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLDivElement>();
   const animating = !prefersReducedMotion && inView;

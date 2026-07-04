@@ -51,6 +51,7 @@ import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 
 export type LiquidTooltipPlacement = "top" | "bottom" | "left" | "right";
 
@@ -179,30 +180,34 @@ function placementStyle(
   }
 }
 
-export function LiquidTooltip({
-  content,
-  placement = "top",
-  material = "glass",
-  tint,
-  color,
-  intensity = "whisper",
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  gap = 6,
-  delay = 100,
-  speed = 1,
-  children,
-  className,
-  style,
-  onPointerEnter,
-  onPointerLeave,
-  onFocus,
-  onBlur,
-  onKeyDown,
-  ...rest
-}: LiquidTooltipProps) {
+export function LiquidTooltip(props: LiquidTooltipProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("LiquidTooltip");
+  const {
+    content,
+    placement = "top",
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    color = themed.color,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    gap = 6,
+    delay = 100,
+    speed = 1,
+    children,
+    className,
+    style,
+    onPointerEnter,
+    onPointerLeave,
+    onFocus,
+    onBlur,
+    onKeyDown,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref: inViewRef, inView } = useInView<HTMLSpanElement>();
   const animating = !prefersReducedMotion && inView;

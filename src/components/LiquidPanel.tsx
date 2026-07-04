@@ -40,6 +40,7 @@ import type {
   Vec,
 } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
@@ -107,24 +108,26 @@ function buildPourScene(
   return { path, speculars };
 }
 
-export function LiquidPanel({
-  open,
-  side = "top",
-  material = "glass",
-  tint,
-  color,
-  intensity = "whisper",
-  radius = 20,
-  padding = 20,
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  children,
-  className,
-  style,
-  ...rest
-}: LiquidPanelProps) {
+export function LiquidPanel(props: LiquidPanelProps) {
+  const themed = useThemedSurface("LiquidPanel");
+  const {
+    open,
+    side = "top",
+    material = themed.material ?? "glass",
+    tint,
+    color,
+    intensity = themed.intensity ?? "whisper",
+    radius = themed.radius ?? 20,
+    padding = 20,
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    children,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const elRef = useRef<HTMLDivElement | null>(null);
   const { ref: inViewRef, inView } = useInView<HTMLDivElement>();
@@ -156,8 +159,13 @@ export function LiquidPanel({
     size?.h ?? 0
   );
   const resolved = useMemo(
-    () => resolveMaterial(material, { tint, color, refractionUrl }),
-    [material, tint, color, refractionUrl]
+    () =>
+      resolveMaterial(material, {
+        tint: tint ?? themed.tint,
+        color: color ?? themed.color,
+        refractionUrl,
+      }),
+    [material, tint, color, themed, refractionUrl]
   );
   const volume = resolveIntensity(intensity);
 
