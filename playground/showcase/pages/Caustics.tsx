@@ -101,9 +101,6 @@ export default function CausticsPage() {
       }
       variants={
         <VariantGrid>
-          <VariantCell label="moonlit — cool light, dark wall">
-            <Caustics color="#dbeaff" background={["#141a20", "#0c1014"]} intensity={0.6} />
-          </VariantCell>
           <VariantCell label='LiquidCard material="caustics"'>
             <div style={{ display: "grid", placeItems: "center", height: "100%", padding: 18 }}>
               <LiquidCard material="caustics" style={{ width: "100%" }}>
