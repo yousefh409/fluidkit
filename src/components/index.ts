@@ -50,6 +50,8 @@ export { LiquidDialog } from "./LiquidDialog";
 export type { LiquidDialogProps } from "./LiquidDialog";
 export { VoiceBall } from "./VoiceBall";
 export type { VoiceBallProps, VoiceBallMode } from "./VoiceBall";
+export { LiquidSwitch } from "./LiquidSwitch";
+export type { LiquidSwitchProps } from "./LiquidSwitch";
 export { LiquidMenu } from "./LiquidMenu";
 export type {
   LiquidMenuProps,

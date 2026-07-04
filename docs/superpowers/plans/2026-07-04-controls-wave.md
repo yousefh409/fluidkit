@@ -125,6 +125,8 @@ Pure refactor, zero visual change.
 - [ ] Delete or park the Phase-1 lab pages; clean the registry.
 - [ ] README primitives table + materials note updated with the eight entries.
 - [ ] `CHANGELOG.md` release section; size budget re-pinned with rationale.
+  (Provisionally bumped 27.3 → 33 kB mid-wave when Switch crossed the old
+  budget by 130 B; the close-out re-pin replaces this with measured +20%.)
 - [ ] Full verification: `npm test`, `npm run typecheck`, `npm run size`,
   `npm run check:gpu-leak`, `npm run check:pack`.
 - [ ] Code review pass (requesting-code-review), fix findings.
