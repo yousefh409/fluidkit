@@ -1,9 +1,17 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
+import type { ComponentType } from "react";
 import type {
   LiquidTabsMaterial,
   LiquidTabsProps,
 } from "../../../src/components/tabs/LiquidTabs";
+import type { SurfaceRender } from "../surfacePack";
+import {
+  expectColorFillsFlat,
+  expectIntensityScalesSpeculars,
+  expectNullLightPaintsNoSpeculars,
+  expectTintReachesGlassFill,
+} from "../surfacePack";
 
 /**
  * Mock `motion/react` per test so only `useReducedMotion` is overridden, then
@@ -456,5 +464,121 @@ describe("LiquidTabs (bar) — mid-transition re-measure", () => {
     );
 
     expect(snapTo).toHaveBeenCalled();
+  });
+});
+
+describe("LiquidTabs (bar) — indicator surface style pack", () => {
+  // Real-ish geometry: the glint math needs a nonzero pill, and jsdom's
+  // offsets are all 0 (same stubbing pattern as the re-measure suite).
+  const OFFSETS = ["offsetHeight", "offsetWidth", "offsetLeft"] as const;
+  const OFFSET_VALUES: Record<(typeof OFFSETS)[number], number> = {
+    offsetHeight: 40,
+    offsetWidth: 80,
+    offsetLeft: 10,
+  };
+
+  beforeEach(() => {
+    for (const prop of OFFSETS) {
+      Object.defineProperty(HTMLElement.prototype, prop, {
+        configurable: true,
+        value: OFFSET_VALUES[prop],
+      });
+    }
+  });
+
+  afterEach(() => {
+    for (const prop of OFFSETS) {
+      Object.defineProperty(HTMLElement.prototype, prop, {
+        configurable: true,
+        value: 0,
+      });
+    }
+    vi.doUnmock("motion/react");
+    vi.doUnmock("../../../src/utils/featureDetect");
+    vi.resetModules();
+  });
+
+  /**
+   * The conformance helper drives the pack props; `reflection` is baked in
+   * because tabs divergently default it to `false` (the shipped indicator
+   * is unlit), and the helper's specular assertions assume glints CAN paint.
+   */
+  const surfaceRender = (
+    LiquidTabs: ComponentType<LiquidTabsProps>
+  ): SurfaceRender => (props) =>
+    render(<LiquidTabs items={ITEMS} defaultValue="one" reflection {...props} />);
+
+  const visibleSpeculars = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("ellipse")).filter(
+      (el) => Number(el.getAttribute("opacity") ?? 0) > 0
+    );
+
+  it("pins today's defaults: no speculars, no shadow, on either material", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    for (const material of ["flat", "glass"] as const) {
+      const { container } = render(
+        <LiquidTabs items={ITEMS} defaultValue="one" material={material} />
+      );
+      expect(visibleSpeculars(container)).toHaveLength(0);
+      expect(
+        container.querySelector('[data-fluidkit="liquid-shadow"]')
+      ).toBeNull();
+    }
+  });
+
+  it("`reflection` lights the glass indicator from the scene light", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    const { container } = render(
+      <LiquidTabs items={ITEMS} defaultValue="one" material="glass" reflection />
+    );
+    expect(visibleSpeculars(container).length).toBeGreaterThan(0);
+  });
+
+  it("scales glint brightness with `intensity`", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    expectIntensityScalesSpeculars(surfaceRender(LiquidTabs));
+  });
+
+  it("paints no glints when `light={null}` even with reflection on", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    expectNullLightPaintsNoSpeculars(surfaceRender(LiquidTabs));
+  });
+
+  it("never glints the flat material (house rule), even with reflection on", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    const { container } = render(
+      <LiquidTabs items={ITEMS} defaultValue="one" material="flat" reflection />
+    );
+    expect(visibleSpeculars(container)).toHaveLength(0);
+  });
+
+  it("`shadow` toggles the indicator shadow layer (defaults off)", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    const off = render(<LiquidTabs items={ITEMS} defaultValue="one" />);
+    expect(
+      off.container.querySelector('[data-fluidkit="liquid-shadow"]')
+    ).toBeNull();
+    const on = render(<LiquidTabs items={ITEMS} defaultValue="one" shadow />);
+    expect(
+      on.container.querySelector('[data-fluidkit="liquid-shadow"]')
+    ).not.toBeNull();
+  });
+
+  it("keeps glints on the resting pill under reduced motion", async () => {
+    const LiquidTabs = await loadTabs(true, true);
+    const { container } = render(
+      <LiquidTabs items={ITEMS} defaultValue="one" material="glass" reflection />
+    );
+    expect(visibleSpeculars(container).length).toBeGreaterThan(0);
+  });
+
+  it("applies `tint` to the glass indicator fill (pack conformance)", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    expectTintReachesGlassFill(surfaceRender(LiquidTabs));
+  });
+
+  it("applies `color` to the flat indicator fill (pack conformance)", async () => {
+    const LiquidTabs = await loadTabs(false, true);
+    expectColorFillsFlat(surfaceRender(LiquidTabs));
   });
 });

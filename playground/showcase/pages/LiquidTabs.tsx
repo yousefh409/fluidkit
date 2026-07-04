@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LiquidTabs } from "fluidkit";
-import { PageLayout, Stage, Controls, Toggle, Seg, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Toggle, Seg, Slider, Snippet, VariantGrid, VariantCell } from "../kit";
 
 const FLAT_COLOR = "#23242c";
 
@@ -22,12 +22,13 @@ function ColorField({ label, value, set }: {
 }
 
 /** One self-managing tab strip for the variants grid (uncontrolled via `defaultValue`). */
-function TabsVariant({ flow, material, size, color = FLAT_COLOR, activeLabelColor }: {
+function TabsVariant({ flow, material, size, color = FLAT_COLOR, activeLabelColor, reflection }: {
   flow: "slide" | "stretch";
   material: "flat" | "glass";
   size: "sm" | "md" | "lg";
   color?: string;
   activeLabelColor?: string;
+  reflection?: boolean;
 }) {
   return (
     <LiquidTabs
@@ -37,6 +38,7 @@ function TabsVariant({ flow, material, size, color = FLAT_COLOR, activeLabelColo
       size={size}
       color={color}
       activeLabelColor={activeLabelColor}
+      reflection={reflection}
       items={[
         { id: "chat", label: "Chat" },
         { id: "files", label: "Files" },
@@ -53,6 +55,9 @@ export default function LiquidTabsPage() {
   const [size, setSize] = useState<"sm" | "md" | "lg">("md");
   const [disableOne, setDisableOne] = useState(false);
   const [color, setColor] = useState(FLAT_COLOR);
+  const [reflection, setReflection] = useState(false);
+  const [intensity, setIntensity] = useState(0.35);
+  const [shadow, setShadow] = useState(false);
   // null = untouched: picker shows the component default, snippet omits the prop.
   const [labelColor, setLabelColor] = useState<string | null>(null);
   const [activeLabelColor, setActiveLabelColor] = useState<string | null>(null);
@@ -81,6 +86,9 @@ export default function LiquidTabsPage() {
               size={size}
               color={color}
               tint={material === "glass" ? tint : undefined}
+              reflection={reflection}
+              intensity={intensity}
+              shadow={shadow}
               labelColor={labelColor ?? undefined}
               activeLabelColor={activeLabelColor ?? undefined}
               items={items}
@@ -109,6 +117,13 @@ export default function LiquidTabsPage() {
               value={activeLabelColor ?? ACTIVE_LABEL_DEFAULTS[material]}
               set={setActiveLabelColor}
             />
+            {material === "glass" && (
+              <Toggle label="reflection" value={reflection} set={setReflection} />
+            )}
+            {material === "glass" && reflection && (
+              <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            )}
+            <Toggle label="shadow" value={shadow} set={setShadow} />
             <Toggle label="disable Automations" value={disableOne} set={setDisableOne} />
           </Controls>
         </>
@@ -126,6 +141,9 @@ export default function LiquidTabsPage() {
           </VariantCell>
           <VariantCell label="stretch · glass" wall>
             <TabsVariant flow="stretch" material="glass" size="md" />
+          </VariantCell>
+          <VariantCell label="glass · lit" wall>
+            <TabsVariant flow="slide" material="glass" size="md" reflection />
           </VariantCell>
           <VariantCell label="size sm" wall>
             <TabsVariant flow="slide" material="flat" size="sm" />
@@ -148,7 +166,7 @@ export default function LiquidTabsPage() {
   defaultValue="chat"
   flow="${flow}"
   material="${material}"
-  size="${size}"${material === "flat" ? `\n  color="${color}"` : ""}${material === "glass" && tint ? `\n  tint="${tint}"` : ""}${labelColor ? `\n  labelColor="${labelColor}"` : ""}${activeLabelColor ? `\n  activeLabelColor="${activeLabelColor}"` : ""}
+  size="${size}"${material === "flat" ? `\n  color="${color}"` : ""}${material === "glass" && tint ? `\n  tint="${tint}"` : ""}${material === "glass" && reflection ? `\n  reflection` : ""}${material === "glass" && reflection && intensity !== 0.35 ? `\n  intensity={${intensity}}` : ""}${shadow ? `\n  shadow` : ""}${labelColor ? `\n  labelColor="${labelColor}"` : ""}${activeLabelColor ? `\n  activeLabelColor="${activeLabelColor}"` : ""}
 />`}
         />
       }

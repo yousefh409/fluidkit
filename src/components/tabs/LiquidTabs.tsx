@@ -30,10 +30,19 @@ import {
   type ReactNode,
 } from "react";
 import { useAnimationFrame } from "motion/react";
-import { LiquidRenderer, TensionField, resolveMaterial } from "../../liquid";
-import type { LiquidSceneHandle } from "../../liquid";
+import {
+  LiquidRenderer,
+  TensionField,
+  defaultLight,
+  resolveMaterial,
+  specularPlacement,
+} from "../../liquid";
+import type { LiquidSceneHandle, SpecularSpot, Vec } from "../../liquid";
 import { useMotionSprings } from "../../liquid/useMotionSprings";
 import { resolveColor, usePrefersReducedMotion } from "../../utils";
+import { resolveIntensity } from "../intensity";
+import type { LiquidIntensity } from "../intensity";
+import type { SurfaceStyleProps } from "../surface";
 import { FLOWS, stretchEdgeConfigs, type FlowName, type TabRect } from "./flows";
 import { mixColor, parseColor, tabCoverage, type RGB } from "./tint";
 import { useTabList } from "./useTabList";
@@ -54,7 +63,8 @@ export interface LiquidTabsItem {
 }
 
 export interface LiquidTabsProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "defaultValue"> {
+  extends Omit<SurfaceStyleProps, "refraction">,
+    Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "defaultValue"> {
   items: LiquidTabsItem[];
   /** Controlled active id. */
   value?: string;
@@ -73,6 +83,24 @@ export interface LiquidTabsProps
    * engine's glass tint.
    */
   tint?: string;
+  /**
+   * How loudly the indicator's glint reads: 0–1, or the presets
+   * `"whisper"` (0.35) / `"present"` (0.7). Defaults to `"whisper"`.
+   */
+  intensity?: LiquidIntensity;
+  /** Scene light in tabs coordinates; null disables the glint. */
+  light?: Vec | null;
+  /**
+   * Paint a specular glint on the glass indicator. Defaults to `false` —
+   * a documented divergence from the pack's usual `true`, because the
+   * shipped indicator pill is unlit.
+   */
+  reflection?: boolean;
+  /**
+   * Drop shadow under the indicator pill. Defaults to `false` (the shipped
+   * pill sits flush in its tray, unlifted).
+   */
+  shadow?: boolean;
   /**
    * Inactive label color. Hex or `rgb()` (label colors are mixed
    * numerically per frame); defaults per material.
@@ -122,6 +150,36 @@ const sameRects = (
   return true;
 };
 
+/**
+ * One glint per liquid body, derived from the scene's ink x-intervals
+ * (body + optional tail on `slide`, one pill on `stretch`). Placement and
+ * the shared `0.4 × volume` opacity rule match the rest of the surface
+ * family, so the tabs glint agrees with every other surface on where the
+ * light is and how loud it reads.
+ */
+function indicatorSpeculars(
+  intervals: readonly [number, number][],
+  height: number,
+  light: Vec | null,
+  volume: number
+): SpecularSpot[] {
+  if (!light || volume <= 0 || height <= 0) return [];
+  return intervals.map(([left, right]) =>
+    specularPlacement(
+      {
+        x: (left + right) / 2,
+        y: height / 2,
+        r: Math.min(right - left, height) * 0.48,
+      },
+      light,
+      0.4 * volume
+    )
+  );
+}
+
+/** Specular ellipse pool: `slide` lights at most a body + its tail. */
+const SPECULAR_SLOTS = 2;
+
 export function LiquidTabs({
   items,
   value,
@@ -132,6 +190,10 @@ export function LiquidTabs({
   size = "md",
   color,
   tint,
+  intensity = "whisper",
+  light,
+  reflection = false,
+  shadow = false,
   labelColor,
   activeLabelColor,
   className,
@@ -295,6 +357,31 @@ export function LiquidTabs({
     );
   }, [restingRect, height, layerWidth, flowSpec]);
 
+  const resolvedColor = resolveColor(color);
+  const resolvedMaterial = resolveMaterial(material, {
+    tint,
+    color: resolvedColor,
+  });
+
+  // Scene light for the indicator glint — glass only; flat stays unlit per
+  // the house material rule. A consumer light arrives in tabs coordinates
+  // and is shifted into indicator-layer space (the container minus its
+  // padding), where all flow geometry lives.
+  const volume = resolveIntensity(intensity);
+  const pad = sizeSpec.containerPad;
+  const sceneLight = useMemo<Vec | null>(() => {
+    if (!reflection || light === null) return null;
+    if (light) return { x: light.x - pad, y: light.y - pad };
+    return defaultLight(layerWidth, height);
+  }, [reflection, light, pad, layerWidth, height]);
+  const specLight = resolvedMaterial.specular ? sceneLight : null;
+
+  const restingSpeculars = useMemo(
+    () =>
+      indicatorSpeculars(restingScene.inkIntervals, height, specLight, volume),
+    [restingScene, height, specLight, volume]
+  );
+
   const labelColors = useMemo(() => {
     const defaults = LABEL_COLORS[material];
     return {
@@ -319,11 +406,16 @@ export function LiquidTabs({
   // When idle, sync the declarative resting scene + labels so measurements win.
   useEffect(() => {
     if (settling) return;
-    renderer.current?.setScene({ path: restingScene.path });
+    renderer.current?.setScene({
+      path: restingScene.path,
+      speculars: restingSpeculars,
+    });
     paintLabels(restingScene.inkIntervals);
-  }, [settling, restingScene, paintLabels]);
+  }, [settling, restingScene, restingSpeculars, paintLabels]);
 
   // Animation loop: recompute the flow scene from live spring values + tint.
+  // Speculars ride the same imperative write, so the glint follows the
+  // flowing pill per frame without a React commit.
   useAnimationFrame(() => {
     if (!settling || !restingRect || height <= 0) return;
     const values = springs.values.map((v) => v.get());
@@ -333,14 +425,16 @@ export function LiquidTabs({
       width: layerWidth,
       restWidth: restingRect.width,
     });
-    renderer.current?.setScene({ path: scene.path });
+    renderer.current?.setScene({
+      path: scene.path,
+      speculars: indicatorSpeculars(
+        scene.inkIntervals,
+        height,
+        specLight,
+        volume
+      ),
+    });
     paintLabels(scene.inkIntervals);
-  });
-
-  const resolvedColor = resolveColor(color);
-  const resolvedMaterial = resolveMaterial(material, {
-    tint,
-    color: resolvedColor,
   });
 
   const containerStyle: CSSProperties = {
@@ -400,6 +494,9 @@ export function LiquidTabs({
             ref={renderer}
             path={restingScene.path}
             material={resolvedMaterial}
+            speculars={restingSpeculars}
+            specularSlots={specLight ? SPECULAR_SLOTS : 0}
+            shadow={shadow}
           />
         </div>
       </div>

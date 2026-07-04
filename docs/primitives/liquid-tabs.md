@@ -20,6 +20,8 @@ Set the surface with `material`:
 - `flat` (default): a solid dark indicator on a frosted container. Highest contrast, reads on any background. Use `color` to set the fill.
 - `glass`: the indicator itself is liquid glass, translucent and blurring what sits behind it. `color` is ignored; use `tint` to tint both the container and the indicator. Falls back to a frosted flat fill where `backdrop-filter` is unsupported.
 
+The glass indicator can also carry the surface pack's lighting: `reflection` (opt-in here) paints a specular glint that rides the pill per frame as it flows, `intensity` sets how loudly it reads, `light` moves the scene light, and `shadow` (also opt-in) lifts the pill off its tray. Flat never glints, per the house material rule.
+
 ## Layering
 
 Tab labels never sit inside a filtered or rasterized subtree (the library's non-negotiable: animate the surface, never the text). `LiquidTabs` renders two overlaid sibling layers inside the container:
@@ -48,6 +50,10 @@ Tab boxes are measured (`offsetLeft` / `offsetWidth`) in a layout effect (a Resi
 | `size` | `"sm" \| "md" \| "lg"` | `"md"` | Padding, font size, and pill height. |
 | `color` | `string` | `currentColor` | Flat fill color. Ignored by the glass material. |
 | `tint` | `string` | engine glass tint | Glass tint for the container and indicator. Ignored by the flat material. |
+| `intensity` | `number \| "whisper" \| "present"` | `"whisper"` (0.35) | How loudly the indicator's glint reads (0–1). Only visible with `reflection` on glass. |
+| `light` | `{x, y} \| null` | above, 30% from left | Scene light in px (tabs coords). `null` disables the glint. |
+| `reflection` | `boolean` | `false` | Paint a specular glint on the glass indicator. Defaults off — unlike the rest of the surface pack — so the shipped pill stays unlit. |
+| `shadow` | `boolean` | `false` | Drop shadow under the indicator pill. Defaults off — unlike the rest of the surface pack — so the shipped pill stays flush in its tray. |
 | `className` | `string` | undefined | Applied to the container. |
 | `style` | `CSSProperties` | undefined | Applied to the container. |
 
