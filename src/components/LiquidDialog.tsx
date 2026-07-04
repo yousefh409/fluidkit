@@ -404,6 +404,10 @@ export function LiquidDialog({
       ? "blur(6px) saturate(1.15)"
       : "blur(0px) saturate(1)",
     opacity: entered ? 1 : 0,
+    // The layer is built fresh every open and transitions immediately;
+    // hint the compositor so the first frames aren't spent promoting and
+    // rasterizing it cold (worst after the page has sat idle).
+    willChange: "opacity, backdrop-filter",
     // Open: the water rises with the morph. Close: the fade WAITS while
     // the box drops back toward the trigger, then drains — fading at
     // t=0 would chop the drop-back morph off mid-flight.
