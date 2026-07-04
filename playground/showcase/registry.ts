@@ -54,6 +54,9 @@ export const REGISTRY: ShowcasePage[] = [
   { slug: "liquid-switch", title: "LiquidSwitch", load: () => import("./pages/LiquidSwitch") },
   { slug: "liquid-checkbox", title: "LiquidCheckbox", load: () => import("./pages/LiquidCheckbox") },
   { slug: "liquid-slider", title: "LiquidSlider", load: () => import("./pages/LiquidSlider") },
+  { slug: "liquid-progress", title: "LiquidProgress", load: () => import("./pages/LiquidProgress") },
+  { slug: "liquid-field", title: "LiquidField", load: () => import("./pages/LiquidField") },
+  { slug: "liquid-badge", title: "LiquidBadge", load: () => import("./pages/LiquidBadge") },
   { slug: "liquid-metal", title: "LiquidMetal", load: () => import("./pages/LiquidMetal"), isGpu: true },
   // Controls-wave prototype labs (throwaway) — removed before the wave merges.
   { slug: "lab-switch", title: "Lab · Switch", load: () => import("./pages/labs/SwitchLab") },
