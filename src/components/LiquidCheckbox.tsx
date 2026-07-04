@@ -245,7 +245,7 @@ export function LiquidCheckbox({
     >
       <span style={{ position: "relative", width: size, height: size, flex: "none" }}>
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
-          <LiquidRenderer path={wellPath} material={wellMaterial} shadow={shadow} />
+          <LiquidRenderer path={wellPath} material={wellMaterial} />
         </span>
         {/* A neutral hairline so the empty well reads as a crisp box on
             any wall (review: the unchecked state was near-invisible — a
@@ -257,8 +257,15 @@ export function LiquidCheckbox({
             position: "absolute",
             inset: 0,
             borderRadius: radius,
-            boxShadow:
-              "inset 0 0 0 1px rgba(60, 70, 100, 0.22), inset 0 1px 2px rgba(60, 70, 100, 0.08)",
+            // The engine's card-scale drop shadow detaches under a box
+            // this small — a well-scaled CSS shadow instead.
+            boxShadow: [
+              "inset 0 0 0 1px rgba(60, 70, 100, 0.22)",
+              "inset 0 1px 2px rgba(60, 70, 100, 0.08)",
+              shadow ? "0 1px 3px rgba(46, 44, 72, 0.22)" : "",
+            ]
+              .filter(Boolean)
+              .join(", "),
             pointerEvents: "none",
           }}
         />

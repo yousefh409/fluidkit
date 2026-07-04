@@ -5,8 +5,8 @@ box's well, settling with a wobble; on uncheck the liquid drains out.
 `indeterminate` — a real capability of the native checkbox — reads as a
 half-filled well with a flat meniscus.
 
-The empty well reads as a crisp glass box — rim ring + inset glow, the
-Card/Dialog treatment — never a faint smear.
+The empty well reads as a crisp glass box — a neutral hairline edge and a
+well-scaled shadow — never a faint smear.
 
 A real (visually hidden) `<input type="checkbox">` powers it: keyboard,
 screen readers, form submission, and label association are the browser's.
