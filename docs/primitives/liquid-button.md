@@ -57,4 +57,3 @@ The press geometry paints on a bleed canvas that extends past the button's borde
 
 - **Reduced motion**: no deformation, wave, or glint; the button still presses, clicks, and focuses like a normal button, with a slight opacity dip plus the pressed fill deepening (color, not motion) as feedback. (`variant="still"` differs: it keeps the glint and adds no opacity dip.)
 - **No `backdrop-filter` support**: glass renders as a frosted flat fill (still lit).
-```

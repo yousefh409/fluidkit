@@ -241,6 +241,32 @@ describe("LiquidButton", () => {
     expect(clip.style.clipPath).toBe(restingClip);
   });
 
+  it("variant='still' keeps the press glint on glass", async () => {
+    const LiquidButton = await loadLiquidButton(false);
+    const spring = { stiffness: 550, damping: 60 };
+    const { getByRole, container } = render(
+      <LiquidButton variant="still" deformPress={false} spring={spring}>
+        Glint
+      </LiquidButton>
+    );
+    const button = getByRole("button", { name: "Glint" });
+    const litCount = () =>
+      [...container.querySelectorAll("ellipse")].filter(
+        (e) => Number(e.getAttribute("opacity")) > 0
+      ).length;
+    // At rest: the body sheen only.
+    const resting = litCount();
+    expect(resting).toBeGreaterThan(0);
+
+    // Press: the expanding glint lights an extra specular even though the
+    // geometry never deforms on the still variant.
+    fireEvent.pointerDown(button);
+    await vi.waitFor(() => {
+      expect(litCount()).toBeGreaterThan(resting);
+    });
+    fireEvent.pointerUp(button);
+  });
+
   it("renames JellyButton to LiquidButton (no JellyButton export)", () => {
     expect(LiquidButtonModule.LiquidButton).toBeDefined();
     // @ts-expect-error — JellyButton was renamed to LiquidButton; no alias.
