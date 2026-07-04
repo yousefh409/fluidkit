@@ -353,7 +353,12 @@ export function LiquidTabs({
     // a frosted solid pill; glass gets the shared glass recipe — kept at the
     // container's softer 10px blur — under a barely-there ring.
     ...(material === "glass"
-      ? resolveMaterial("glass", { tint, blurPx: 10 }).fillStyle
+      ? {
+          ...resolveMaterial("glass", { tint, blurPx: 10 }).fillStyle,
+          // The container never appears/re-rasterizes; only the indicator
+          // fill needs the pinned layer.
+          willChange: undefined,
+        }
       : {
           background: "rgba(255,255,255,0.62)",
           backdropFilter: "blur(10px)",

@@ -116,6 +116,10 @@ describe("LiquidTabs (bar)", () => {
     expect(stage.style.background).toBe("rgba(255, 255, 255, 0.3)");
     // The container keeps its softer 10px blur via the resolver's override.
     expect(stage.style.backdropFilter).toBe("blur(10px) saturate(1.8)");
+    // No pinned GPU layer: the container is permanent and static, so the
+    // resolver's will-change hint (for glass that appears/disappears) must
+    // not ride along — only the indicator fill keeps it.
+    expect(stage.style.willChange).toBe("");
   });
 
   it("a custom tint reaches the glass container", async () => {
