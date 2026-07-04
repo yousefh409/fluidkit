@@ -41,6 +41,13 @@ export const REGISTRY: ShowcasePage[] = [
   { slug: "drip-fuse", title: "DripFuse", load: () => import("./pages/DripFuse") },
   { slug: "mesh-gradient", title: "MeshGradient", load: () => import("./pages/MeshGradient") },
   { slug: "aurora", title: "Aurora", load: () => import("./pages/Aurora") },
+  { slug: "liquid-card", title: "LiquidCard", load: () => import("./pages/LiquidCard") },
+  { slug: "meniscus-divider", title: "MeniscusDivider", load: () => import("./pages/MeniscusDivider") },
+  { slug: "liquid-panel", title: "LiquidPanel", load: () => import("./pages/LiquidPanel") },
+  { slug: "liquid-tooltip", title: "LiquidTooltip", load: () => import("./pages/LiquidTooltip") },
+  { slug: "liquid-text", title: "LiquidText", load: () => import("./pages/LiquidText") },
+  { slug: "liquid-dialog", title: "LiquidDialog", load: () => import("./pages/LiquidDialog") },
+  { slug: "voice-ball", title: "VoiceBall", load: () => import("./pages/VoiceBall") },
   { slug: "liquid-metal", title: "LiquidMetal", load: () => import("./pages/LiquidMetal"), isGpu: true },
   { slug: "water-field", title: "WaterField", load: () => import("./pages/WaterField"), isGpu: true },
 ];
