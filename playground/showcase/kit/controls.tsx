@@ -25,6 +25,23 @@ export function Seg<T extends string>({ label, value, set, options }: { label: s
   );
 }
 
+/**
+ * Native color picker with an "unset" state: pass `value={null}` while the
+ * user hasn't picked one yet — shows a neutral swatch and lets pages omit
+ * the prop entirely (component default renders). Once `set` fires, callers
+ * typically hold a real string from then on.
+ */
+export function ColorField({ label, value, set }: { label: string; value: string | null; set: (v: string) => void }) {
+  return (
+    <div className="field">
+      <label>
+        {label} <span className="val">{value ?? "auto"}</span>
+      </label>
+      <input type="color" value={value ?? "#888888"} onChange={(e) => set(e.target.value)} />
+    </div>
+  );
+}
+
 /** Row of controls under a stage — same `.controls` treatment as the old cards. */
 export function Controls({ children }: { children: ReactNode }) {
   return <div className="controls">{children}</div>;

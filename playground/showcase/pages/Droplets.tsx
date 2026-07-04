@@ -8,6 +8,7 @@ import {
   Slider,
   Toggle,
   Seg,
+  ColorField,
   Snippet,
   VariantGrid,
   VariantCell,
@@ -30,10 +31,13 @@ export default function DropletsPage() {
   const [interactive, setInteractive] = useState(true);
   const [refraction, setRefraction] = useState(false);
   const [intensity, setIntensity] = useState(0.7);
+  // null = untouched: picker shows a neutral swatch, snippet/prop stay omitted.
+  const [tint, setTint] = useState<string | null>(null);
+  const [color, setColor] = useState(FLAT_COLOR);
 
   const usage = `import { Droplets } from "fluidkit";
 
-<Droplets${interactive ? " interactive" : " followPointer"} bleed={120} material="${material}"${refraction ? " refraction" : ""}${intensity !== 0.7 ? ` intensity={${intensity}}` : ""} />`;
+<Droplets${interactive ? " interactive" : " followPointer"} bleed={120} material="${material}"${refraction ? " refraction" : ""}${intensity !== 0.7 ? ` intensity={${intensity}}` : ""}${material === "glass" && tint ? ` tint="${tint}"` : ""}${material === "flat" ? ` color="${color}"` : ""} />`;
 
   return (
     <PageLayout
@@ -56,7 +60,8 @@ export default function DropletsPage() {
               reflection={reflection}
               refraction={refraction}
               intensity={intensity}
-              color={material === "flat" ? FLAT_COLOR : undefined}
+              tint={material === "glass" ? tint ?? undefined : undefined}
+              color={material === "flat" ? color : undefined}
             />
           </Stage>
           <Controls>
@@ -65,6 +70,11 @@ export default function DropletsPage() {
             <Toggle label="reflection" value={reflection} set={setReflection} />
             <Toggle label="refraction" value={refraction} set={setRefraction} />
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            {material === "glass" ? (
+              <ColorField label="tint" value={tint} set={setTint} />
+            ) : (
+              <ColorField label="color" value={color} set={setColor} />
+            )}
             <Slider label="count" value={count} set={setCount} min={1} max={5} />
             <Slider label="size" value={size} set={setSize} min={20} max={64} />
             <Slider label="spread" value={spread} set={setSpread} min={40} max={160} />

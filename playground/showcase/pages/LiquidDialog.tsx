@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LiquidDialog, JellyButton } from "fluidkit";
 import type { LiquidDialogProps } from "fluidkit";
-import { PageLayout, Stage, Controls, Slider, Seg, Toggle, Snippet } from "../kit";
+import { PageLayout, Stage, Controls, Slider, Seg, Toggle, ColorField, Snippet } from "../kit";
 
 type LiquidMaterial = NonNullable<LiquidDialogProps["material"]>;
 
@@ -21,8 +21,11 @@ const bodyText: React.CSSProperties = {
 export default function LiquidDialogPage() {
   const [open, setOpen] = useState(false);
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
-  const [intensity, setIntensity] = useState(0.5);
+  const [intensity, setIntensity] = useState(0.35);
   const [refraction, setRefraction] = useState(false);
+  // null = untouched: picker shows a neutral swatch, snippet/prop stay omitted.
+  const [tint, setTint] = useState<string | null>(null);
+  const [color, setColor] = useState(FLAT_COLOR);
 
   return (
     <PageLayout
@@ -41,7 +44,8 @@ export default function LiquidDialogPage() {
               material={material}
               intensity={intensity}
               refraction={refraction}
-              color={material !== "glass" ? FLAT_COLOR : undefined}
+              tint={material === "glass" ? tint ?? undefined : undefined}
+              color={material === "flat" ? color : undefined}
             >
               <div style={{ maxWidth: 300 }}>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#23242c" }}>
@@ -66,13 +70,18 @@ export default function LiquidDialogPage() {
           </Stage>
           <Controls>
             <Seg label="material" value={material} set={setMaterial} options={MATERIALS} />
+            {material === "glass" ? (
+              <ColorField label="tint" value={tint} set={setTint} />
+            ) : (
+              <ColorField label="color" value={color} set={setColor} />
+            )}
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
             <Toggle label="refraction" value={refraction} set={setRefraction} />
           </Controls>
         </>
       }
       usage={
-        <Snippet code={`<LiquidDialog open={open} onClose={() => setOpen(false)} aria-label="Settings" material="${material}" intensity={${intensity}}${refraction ? "\n  refraction" : ""}>
+        <Snippet code={`<LiquidDialog open={open} onClose={() => setOpen(false)} aria-label="Settings" material="${material}"${intensity !== 0.35 ? ` intensity={${intensity}}` : ""}${material === "glass" && tint ? ` tint="${tint}"` : ""}${material === "flat" ? ` color="${color}"` : ""}${refraction ? "\n  refraction" : ""}>
   <h2>Settings</h2>
   …
 </LiquidDialog>`} />

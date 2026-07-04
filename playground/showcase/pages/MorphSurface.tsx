@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MorphSurface } from "fluidkit";
 import type { MorphSurfaceProps } from "fluidkit";
-import { PageLayout, Stage, Controls, Toggle, Seg, Slider, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Toggle, Seg, Slider, ColorField, Snippet, VariantGrid, VariantCell } from "../kit";
 
 type LiquidMaterial = NonNullable<MorphSurfaceProps["material"]>;
 type Anchor = NonNullable<MorphSurfaceProps["anchor"]>;
@@ -74,6 +74,9 @@ export default function MorphSurfacePage() {
   const [spring, setSpring] = useState<SpringPreset>("standard");
   const [intensity, setIntensity] = useState(0.7);
   const [shadow, setShadow] = useState(true);
+  // null = untouched: picker shows a neutral swatch, prop stays omitted (component default).
+  const [tint, setTint] = useState<string | null>(null);
+  const [color, setColor] = useState<string | null>(null);
 
   return (
     <PageLayout
@@ -93,6 +96,8 @@ export default function MorphSurfacePage() {
               bodySpring={SPRING_PRESETS[spring]}
               intensity={intensity}
               shadow={shadow}
+              tint={material === "glass" ? tint ?? undefined : undefined}
+              color={material === "flat" ? color ?? undefined : undefined}
               closedContent={<PillFace />}
               openContent={<PanelFace />}
             />
@@ -107,6 +112,11 @@ export default function MorphSurfacePage() {
             <Toggle label="satellites" value={satellites} set={setSatellites} />
             <Toggle label="shadow" value={shadow} set={setShadow} />
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            {material === "glass" ? (
+              <ColorField label="tint" value={tint} set={setTint} />
+            ) : (
+              <ColorField label="color" value={color} set={setColor} />
+            )}
           </Controls>
         </>
       }
@@ -119,7 +129,7 @@ export default function MorphSurfacePage() {
       usage={
         <Snippet code={`<MorphSurface
   open={open}
-  material="${material}"${anchor !== "center" ? `\n  anchor="${anchor}"` : ""}${absorption !== "shrink" ? `\n  absorption="${absorption}"` : ""}${spring !== "standard" ? `\n  bodySpring={{ stiffness: ${SPRING_PRESETS[spring].stiffness}, damping: ${SPRING_PRESETS[spring].damping} }}` : ""}${refraction ? "\n  refraction" : ""}${intensity !== 0.7 ? `\n  intensity={${intensity}}` : ""}${!shadow ? "\n  shadow={false}" : ""}
+  material="${material}"${anchor !== "center" ? `\n  anchor="${anchor}"` : ""}${absorption !== "shrink" ? `\n  absorption="${absorption}"` : ""}${spring !== "standard" ? `\n  bodySpring={{ stiffness: ${SPRING_PRESETS[spring].stiffness}, damping: ${SPRING_PRESETS[spring].damping} }}` : ""}${refraction ? "\n  refraction" : ""}${intensity !== 0.7 ? `\n  intensity={${intensity}}` : ""}${!shadow ? "\n  shadow={false}" : ""}${material === "glass" && tint ? `\n  tint="${tint}"` : ""}${material === "flat" && color ? `\n  color="${color}"` : ""}
   closedContent={<PillFace />}
   openContent={<PanelFace />}
 />`} />

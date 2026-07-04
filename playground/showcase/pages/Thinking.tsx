@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Thinking } from "fluidkit";
 import type { ThinkingProps, ThinkingVariant } from "fluidkit";
-import { PageLayout, Stage, Controls, Slider, Seg, Toggle, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Slider, Seg, Toggle, ColorField, Snippet, VariantGrid, VariantCell } from "../kit";
 
 // LiquidMaterial isn't exported from the package root; derive it consumer-style.
 type LiquidMaterial = NonNullable<ThinkingProps["material"]>;
@@ -19,8 +19,11 @@ export default function ThinkingPage() {
   const [reflection, setReflection] = useState(true);
   const [refraction, setRefraction] = useState(false);
   const [intensity, setIntensity] = useState(0.7);
+  // null = untouched: picker shows a neutral swatch, snippet/prop stay omitted.
+  const [tint, setTint] = useState<string | null>(null);
+  const [color, setColor] = useState(FLAT_COLOR);
 
-  const usage = `{isWorking && <Thinking variant="${variant}" label="Generating"${refraction ? " refraction" : ""}${intensity !== 0.7 ? ` intensity={${intensity}}` : ""} />}`;
+  const usage = `{isWorking && <Thinking variant="${variant}" label="Generating"${refraction ? " refraction" : ""}${intensity !== 0.7 ? ` intensity={${intensity}}` : ""}${material === "glass" && tint ? ` tint="${tint}"` : ""}${material === "flat" ? ` color="${color}"` : ""} />}`;
 
   return (
     <PageLayout
@@ -37,7 +40,8 @@ export default function ThinkingPage() {
               reflection={reflection}
               refraction={refraction}
               intensity={intensity}
-              color={material === "flat" ? FLAT_COLOR : undefined}
+              tint={material === "glass" ? tint ?? undefined : undefined}
+              color={material === "flat" ? color : undefined}
             />
           </Stage>
           <Controls>
@@ -46,6 +50,11 @@ export default function ThinkingPage() {
             <Toggle label="reflection" value={reflection} set={setReflection} />
             <Toggle label="refraction" value={refraction} set={setRefraction} />
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            {material === "glass" ? (
+              <ColorField label="tint" value={tint} set={setTint} />
+            ) : (
+              <ColorField label="color" value={color} set={setColor} />
+            )}
             <Slider label="size" value={size} set={setSize} min={10} max={32} />
             <Slider label="speed" value={speed} set={setSpeed} min={0.3} max={3} step={0.1} />
           </Controls>

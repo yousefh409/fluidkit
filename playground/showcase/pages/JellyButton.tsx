@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { JellyButton } from "fluidkit";
 import type { JellyButtonProps } from "fluidkit";
-import { PageLayout, Stage, Controls, Slider, Seg, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Slider, Seg, ColorField, Snippet, VariantGrid, VariantCell } from "../kit";
 
 type LiquidMaterial = NonNullable<JellyButtonProps["material"]>;
 
@@ -23,11 +23,13 @@ const PRESS_COLORS = {
 type PressColorKey = keyof typeof PRESS_COLORS;
 
 /** One pill — hero and variant cells alike — with the flat-material color/text fallbacks. */
-function JellyVariant({ material, squash, intensity, pressColor }: {
+function JellyVariant({ material, squash, intensity, pressColor, tint, color }: {
   material: LiquidMaterial;
   squash: number;
   intensity?: number;
   pressColor?: string;
+  tint?: string;
+  color?: string;
 }) {
   return (
     <JellyButton
@@ -35,7 +37,8 @@ function JellyVariant({ material, squash, intensity, pressColor }: {
       squash={squash}
       intensity={intensity}
       pressColor={pressColor}
-      color={material === "flat" ? FLAT_COLOR : undefined}
+      tint={material === "glass" ? tint : undefined}
+      color={material === "flat" ? (color ?? FLAT_COLOR) : undefined}
       style={{ color: material === "flat" ? "#fff" : "#23242c", fontSize: 14, fontWeight: 650 }}
     >
       Press me
@@ -49,6 +52,9 @@ export default function JellyButtonPage() {
   const [intensity, setIntensity] = useState(0.7);
   const [pressColorKey, setPressColorKey] = useState<PressColorKey>("auto");
   const pressColor = PRESS_COLORS[pressColorKey];
+  // null = untouched: picker shows a neutral swatch, snippet/prop stay omitted.
+  const [tint, setTint] = useState<string | null>(null);
+  const [color, setColor] = useState(FLAT_COLOR);
 
   return (
     <PageLayout
@@ -57,7 +63,7 @@ export default function JellyButtonPage() {
       hero={
         <>
           <Stage wall hint="press and hold">
-            <JellyVariant material={material} squash={squash} intensity={intensity} pressColor={pressColor} />
+            <JellyVariant material={material} squash={squash} intensity={intensity} pressColor={pressColor} tint={tint ?? undefined} color={color} />
           </Stage>
           <Controls>
             <Seg label="material" value={material} set={setMaterial} options={MATERIALS} />
@@ -69,6 +75,11 @@ export default function JellyButtonPage() {
               set={setPressColorKey}
               options={Object.keys(PRESS_COLORS) as PressColorKey[]}
             />
+            {material === "glass" ? (
+              <ColorField label="tint" value={tint} set={setTint} />
+            ) : (
+              <ColorField label="color" value={color} set={setColor} />
+            )}
           </Controls>
         </>
       }
@@ -101,6 +112,8 @@ export default function JellyButtonPage() {
           squash !== 0.12 ? ` squash={${squash}}` : ""
         }${intensity !== 0.7 ? ` intensity={${intensity}}` : ""}${
           pressColor ? ` pressColor="${pressColor}"` : ""
+        }${material === "glass" && tint ? ` tint="${tint}"` : ""}${
+          material === "flat" ? ` color="${color}"` : ""
         } onClick={save}>
   Save changes
 </JellyButton>`} />

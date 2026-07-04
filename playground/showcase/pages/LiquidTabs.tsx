@@ -1,25 +1,12 @@
 import { useState } from "react";
 import { LiquidTabs } from "fluidkit";
-import { PageLayout, Stage, Controls, Toggle, Seg, Slider, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Toggle, Seg, Slider, ColorField, Snippet, VariantGrid, VariantCell } from "../kit";
 
 const FLAT_COLOR = "#23242c";
 
 /** Component defaults, mirrored so untouched pickers stay honest in the snippet. */
 const LABEL_DEFAULT = "#4b4c56";
 const ACTIVE_LABEL_DEFAULTS = { flat: "#ffffff", glass: "#17181c" };
-
-function ColorField({ label, value, set }: {
-  label: string;
-  value: string;
-  set: (v: string) => void;
-}) {
-  return (
-    <div className="field">
-      <label>{label}</label>
-      <input type="color" value={value} onChange={(e) => set(e.target.value)} />
-    </div>
-  );
-}
 
 /** One self-managing tab strip for the variants grid (uncontrolled via `defaultValue`). */
 function TabsVariant({ flow, material, size, color = FLAT_COLOR, activeLabelColor, reflection }: {
