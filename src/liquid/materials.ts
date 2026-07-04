@@ -7,12 +7,15 @@
  * - mercury: solid liquid-metal fill. No gradient, no painted highlight —
  *   the shape and motion carry the metal read.
  * - flat: plain color; also the reduced/fallback rendering.
+ * - caustics: plaster wall lit by drifting caustic light ("poolside
+ *   light"). The CSS fill here is the wall AND the no-WebGL fallback; the
+ *   moving light itself is the renderer-mounted `CausticsLayer`.
  */
 
 import type { CSSProperties } from "react";
 import { supportsBackdropFilter } from "../utils/featureDetect";
 
-export type LiquidMaterial = "glass" | "mercury" | "flat";
+export type LiquidMaterial = "glass" | "mercury" | "flat" | "caustics";
 
 export interface ResolveMaterialOptions {
   /** Glass tint (any CSS color, normally translucent white). */
@@ -33,6 +36,8 @@ export interface ResolvedMaterial {
   fillStyle: CSSProperties;
   /** Whether specular highlights should be painted. */
   specular: boolean;
+  /** Present when kind === "caustics": parameters for the engine's light layer. */
+  caustics?: { light: string };
 }
 
 const GLASS_TINT = "rgba(255,255,255,0.3)";
@@ -41,6 +46,10 @@ const GLASS_BACKDROP = "blur(16px) saturate(1.8)";
 const GLASS_BACKDROP_REFRACT = "blur(8px) saturate(1.8)";
 const GLASS_FALLBACK_FILL = "rgba(255,255,255,0.65)";
 const MERCURY_FILL = "#cdd3dd";
+/** Warm ivory — the caustic light's default color. */
+const CAUSTICS_LIGHT = "#ffefd6";
+/** Soft plaster wall — also the SSR / no-WebGL rendering. */
+const CAUSTICS_WALL = "linear-gradient(180deg, #f8f8f5, #eceeef)";
 
 export function resolveMaterial(
   material: LiquidMaterial,
@@ -72,6 +81,18 @@ export function resolveMaterial(
       kind: "mercury",
       fillStyle: { background: options.color ?? MERCURY_FILL },
       specular: false,
+    };
+  }
+  if (material === "caustics") {
+    return {
+      kind: "caustics",
+      // The CSS base IS the fallback: without WebGL the surface is simply
+      // a plaster wall with no moving light. Never a black box.
+      fillStyle: { background: options.color ?? CAUSTICS_WALL },
+      // The caustic light is the highlight; painting glass speculars on
+      // top would double the light sources (house rule: one light).
+      specular: false,
+      caustics: { light: options.tint ?? CAUSTICS_LIGHT },
     };
   }
   return {
