@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MeniscusDivider } from "fluidkit";
 import type { MeniscusDividerProps } from "fluidkit";
-import { PageLayout, Stage, Controls, Slider, Seg, Snippet, VariantGrid, VariantCell } from "../kit";
+import { PageLayout, Stage, Controls, Slider, Seg, Toggle, Snippet, VariantGrid, VariantCell } from "../kit";
 
 type LiquidMaterial = NonNullable<MeniscusDividerProps["material"]>;
 
@@ -19,10 +19,11 @@ const paragraph: React.CSSProperties = {
 };
 
 /** The divider between two lines of copy, the way it actually gets used. */
-function DividerInContext({ material, thickness, intensity }: {
+function DividerInContext({ material, thickness, intensity, refraction }: {
   material: LiquidMaterial;
   thickness: number;
   intensity: number;
+  refraction?: boolean;
 }) {
   return (
     <div style={{ display: "grid", gap: 14, width: 300 }}>
@@ -31,6 +32,7 @@ function DividerInContext({ material, thickness, intensity }: {
         material={material}
         thickness={thickness}
         intensity={intensity}
+        refraction={refraction}
         color={material !== "glass" ? FLAT_COLOR : undefined}
       />
       <p style={paragraph}>The glint sits on the stretch facing the light.</p>
@@ -42,6 +44,7 @@ export default function MeniscusDividerPage() {
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
   const [thickness, setThickness] = useState(4);
   const [intensity, setIntensity] = useState(0.35);
+  const [refraction, setRefraction] = useState(false);
 
   return (
     <PageLayout
@@ -50,12 +53,13 @@ export default function MeniscusDividerPage() {
       hero={
         <>
           <Stage wall>
-            <DividerInContext material={material} thickness={thickness} intensity={intensity} />
+            <DividerInContext material={material} thickness={thickness} intensity={intensity} refraction={refraction} />
           </Stage>
           <Controls>
             <Seg label="material" value={material} set={setMaterial} options={MATERIALS} />
             <Slider label="thickness" value={thickness} set={setThickness} min={2} max={12} step={1} suffix="px" />
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            <Toggle label="refraction" value={refraction} set={setRefraction} />
           </Controls>
         </>
       }
@@ -73,7 +77,7 @@ export default function MeniscusDividerPage() {
         </VariantGrid>
       }
       usage={
-        <Snippet code={`<MeniscusDivider material="${material}"${thickness !== 4 ? ` thickness={${thickness}}` : ""} intensity={${intensity}} />`} />
+        <Snippet code={`<MeniscusDivider material="${material}"${thickness !== 4 ? ` thickness={${thickness}}` : ""} intensity={${intensity}}${refraction ? "\n  refraction" : ""} />`} />
       }
     />
   );
