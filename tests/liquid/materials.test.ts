@@ -19,8 +19,7 @@ describe("resolveMaterial", () => {
     const m = resolveMaterial("glass");
     expect(m.kind).toBe("glass");
     expect(m.specular).toBe(true);
-    expect(String(m.fillStyle.backdropFilter)).toContain("blur");
-    expect(String(m.fillStyle.backdropFilter)).toContain("saturate");
+    expect(m.fillStyle.backdropFilter).toBe("blur(16px) saturate(1.8)");
     expect(m.fillStyle.background).toBe("rgba(255,255,255,0.3)");
   });
 

@@ -104,6 +104,16 @@ describe("Ripple", () => {
     expect(ripple.style.boxShadow).toContain("inset");
   });
 
+  it("glass: without backdrop-filter support, falls back to the resolver's frosted flat fill and emits no backdropFilter", async () => {
+    const Ripple = await loadRipple({ backdrop: false });
+    const { container } = render(<Ripple material="glass">Click me</Ripple>);
+
+    const ripple = spawnRipple(container);
+    // The shared resolver's degraded fill (alpha 0.65), not glass's blur chain.
+    expect(ripple.style.background).toBe("rgba(255, 255, 255, 0.65)");
+    expect(ripple.style.backdropFilter).toBe("");
+  });
+
   it("glass: a custom tint reaches the ripple's background", async () => {
     const Ripple = await loadRipple();
     const { container } = render(
