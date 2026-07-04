@@ -74,10 +74,11 @@ function ProgressProto({
   useAnimationFrame((_, delta) => {
     clock.current += delta;
     const f = Math.max(0, Math.min(1, fill.values[0].get()));
-    // Velocity is fraction/sec; full wobble from ~0.35/s of movement. The
-    // envelope decays after motion stops so the meniscus settles, not snaps.
+    // Velocity is fraction/sec; full wobble needs ~0.6/s of movement
+    // (round-1 feedback: the slide wobbled too much). The envelope decays
+    // after motion stops so the meniscus settles, not snaps.
     const v = Math.abs(fill.values[0].getVelocity());
-    const drive = Math.min(1, v / 0.35);
+    const drive = Math.min(1, v / 0.6);
     env.current = Math.max(env.current * Math.exp(-delta / 260), drive);
 
     const wobble =
@@ -135,8 +136,8 @@ export default function ProgressLabPage() {
   const [target, setTarget] = useState(0.35);
   const [stiffness, setStiffness] = useState(90);
   const [damping, setDamping] = useState(14);
-  const [wobbleAmp, setWobbleAmp] = useState(0.22);
-  const [wobbleHz, setWobbleHz] = useState(2.4);
+  const [wobbleAmp, setWobbleAmp] = useState(0.08);
+  const [wobbleHz, setWobbleHz] = useState(1.6);
   const [beadScale, setBeadScale] = useState(1.15);
   const [playback, setPlayback] = useState<Playback>("idle");
 

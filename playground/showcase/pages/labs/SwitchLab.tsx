@@ -1,11 +1,12 @@
 /**
  * LAB (throwaway) — LiquidSwitch prototype.
  *
- * The thumb is a droplet seated in one of two wells. Each well holds a small
- * residual bead of liquid; on toggle the thumb travels, its bridge to the
- * departing bead necks, thins, and tears (leaving a satellite at the
- * pinch-off), then it connects and merges into the far bead. Raw knobs so
- * the motion can be judged live; deleted before the wave merges.
+ * The thumb is a droplet seated in one of two wells. The wells hold no
+ * visible resting liquid (round-1 feedback: no idle circle in the empty
+ * zone) — a transit bead materializes under the thumb as it departs, the
+ * bridge necks, thins, and tears (leaving a satellite at the pinch-off),
+ * and the residue then drains away. Raw knobs so the motion can be judged
+ * live; deleted before the wave merges.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -73,7 +74,16 @@ function SwitchProto({
     stiffness,
     damping,
   });
+  // Transit beads: invisible at rest. The departing seat's bead snaps to
+  // full size under the thumb the moment it leaves (so the tear has a body
+  // to tear FROM), then drains to nothing once the neck snaps.
+  const beadRs = useRef({ L: 0, R: 0 });
+  const beadTargets = useRef({ L: 0, R: 0 });
+
   useEffect(() => {
+    const departing = on ? "L" : "R";
+    beadRs.current[departing] = beadR;
+    beadTargets.current[departing] = beadR;
     x.setTargets([on ? seatR : seatL], { stiffness, damping });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on]);
@@ -86,18 +96,23 @@ function SwitchProto({
 
   useAnimationFrame((_, delta) => {
     const tx = x.values[0].get();
+    // Ease bead radii toward their targets (drain after tear).
+    const ease = 1 - Math.exp(-delta / 90);
+    beadRs.current.L += (beadTargets.current.L - beadRs.current.L) * ease;
+    beadRs.current.R += (beadTargets.current.R - beadRs.current.R) * ease;
     const bodies: LiquidBody[] = [
-      { id: "L", x: seatL, y: cy, r: beadR },
-      { id: "R", x: seatR, y: cy, r: beadR },
+      { id: "L", x: seatL, y: cy, r: beadRs.current.L },
+      { id: "R", x: seatR, y: cy, r: beadRs.current.R },
       { id: "T", x: tx, y: cy, r: thumbR },
     ];
 
     // Mirror the engine's pair hysteresis so the exact tear frame leaves a
-    // satellite droplet at the pinch-off point.
+    // satellite droplet at the pinch-off point — and drains the torn bead.
     for (let i = 0; i < bodies.length; i++) {
       for (let j = i + 1; j < bodies.length; j++) {
         const a = bodies[i];
         const b = bodies[j];
+        if (a.r <= 0.5 || b.r <= 0.5) continue;
         const key = `${a.id}|${b.id}`;
         const d = dist(a, b);
         const stretch = d / (a.r + b.r);
@@ -113,6 +128,11 @@ function SwitchProto({
               r0: Math.min(a.r, b.r) * SAT_R_FACTOR,
               age: 0,
             });
+            // The thumb tore off a transit bead: the residue drains away.
+            if (key.includes("T")) {
+              beadTargets.current.L = 0;
+              beadTargets.current.R = 0;
+            }
           }
           bonds.current.delete(key);
         }

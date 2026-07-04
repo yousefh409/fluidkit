@@ -4,8 +4,9 @@
  * A notification droplet condenses at the screen edge (Tooltip's condense
  * mechanics scaled up: geometry grows from a droplet while the canvas
  * un-blurs) and evaporates on dismiss (blur + lift + fade, condense played
- * backward). Toasts stack from the corner; the stack shift is a plain CSS
- * height collapse. Raw knobs; deleted before the wave merges.
+ * backward). Round 2 adds the classic toast controls: a close button
+ * (toggleable), auto-dismiss with pause-on-hover, and an action button.
+ * Raw knobs; deleted before the wave merges.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,9 +20,9 @@ import {
 } from "../../../../src/liquid";
 import type { LiquidSceneHandle } from "../../../../src/liquid";
 import { useMotionSprings } from "../../../../src/liquid/useMotionSprings";
-import { Controls, PageLayout, Slider as Knob, Stage } from "../../kit";
+import { Controls, PageLayout, Slider as Knob, Stage, Toggle } from "../../kit";
 
-const TOAST_W = 240;
+const TOAST_W = 260;
 const TOAST_H = 46;
 const BLEED = 24;
 const RADIUS = 16;
@@ -35,9 +36,12 @@ const paced = (pace: number) => ({
 
 interface ToastProtoProps {
   msg: string;
+  action?: string;
   leaving: boolean;
   onGone: () => void;
   onDismiss: () => void;
+  showClose: boolean;
+  durationMs: number; // 0 = sticky
   condensePace: number;
   evaporatePace: number;
   blurAmp: number;
@@ -46,9 +50,12 @@ interface ToastProtoProps {
 
 function ToastProto({
   msg,
+  action,
   leaving,
   onGone,
   onDismiss,
+  showClose,
+  durationMs,
   condensePace,
   evaporatePace,
   blurAmp,
@@ -72,17 +79,25 @@ function ToastProto({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leaving]);
 
+  // Auto-dismiss: the clock only runs while the pointer is elsewhere.
+  const remaining = useRef(durationMs);
+  const hovered = useRef(false);
+
   const renderer = useRef<LiquidSceneHandle>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const gone = useRef(false);
 
-  useAnimationFrame(() => {
+  useAnimationFrame((_, delta) => {
     const v = f.values[0].get();
     if (leaving && v < 0.02 && !gone.current) {
       gone.current = true;
       onGone();
       return;
+    }
+    if (!leaving && durationMs > 0 && !hovered.current && v > 0.9) {
+      remaining.current -= delta;
+      if (remaining.current <= 0) onDismiss();
     }
     // Geometry grows from a droplet; never collapses below 0.3 (the canvas
     // fades out underneath it, same trick as LiquidTooltip).
@@ -122,14 +137,13 @@ function ToastProto({
 
   return (
     <div
-      onClick={onDismiss}
-      style={{
-        position: "relative",
-        width: W,
-        height: H,
-        margin: -BLEED,
-        cursor: "pointer",
+      onPointerEnter={() => {
+        hovered.current = true;
       }}
+      onPointerLeave={() => {
+        hovered.current = false;
+      }}
+      style={{ position: "relative", width: W, height: H, margin: -BLEED }}
     >
       <div ref={canvasRef} style={{ position: "absolute", inset: 0 }}>
         <LiquidRenderer
@@ -147,15 +161,54 @@ function ToastProto({
           inset: BLEED,
           display: "flex",
           alignItems: "center",
-          padding: "0 18px",
+          gap: 10,
+          padding: "0 12px 0 18px",
           fontSize: 13,
           fontWeight: 500,
           color: "#3a4050",
           opacity: 0,
-          pointerEvents: "none",
         }}
       >
-        {msg}
+        <span style={{ flex: 1 }}>{msg}</span>
+        {action && (
+          <button
+            onClick={onDismiss}
+            style={{
+              border: "none",
+              borderRadius: 10,
+              padding: "5px 10px",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#2d3648",
+              background: "rgba(60, 70, 100, 0.12)",
+              cursor: "pointer",
+            }}
+          >
+            {action}
+          </button>
+        )}
+        {showClose && (
+          <button
+            onClick={onDismiss}
+            aria-label="Close"
+            style={{
+              border: "none",
+              width: 22,
+              height: 22,
+              borderRadius: 11,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 13,
+              lineHeight: 1,
+              color: "#5a6275",
+              background: "rgba(60, 70, 100, 0.10)",
+              cursor: "pointer",
+              flex: "none",
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
     </div>
   );
@@ -171,11 +224,14 @@ const MESSAGES = [
 interface ToastItem {
   id: number;
   msg: string;
+  action?: string;
   leaving: boolean;
 }
 
 export default function ToastLabPage() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [showClose, setShowClose] = useState(true);
+  const [durationSec, setDurationSec] = useState(5);
   const [condensePace, setCondensePace] = useState(1);
   const [evaporatePace, setEvaporatePace] = useState(1.3);
   const [blurAmp, setBlurAmp] = useState(14);
@@ -183,12 +239,17 @@ export default function ToastLabPage() {
   const [gap, setGap] = useState(10);
   const nextId = useRef(1);
 
-  const fire = (n = 1) =>
+  const fire = (n = 1, action?: string) =>
     setToasts((list) => [
       ...list,
       ...Array.from({ length: n }, () => {
         const id = nextId.current++;
-        return { id, msg: MESSAGES[id % MESSAGES.length], leaving: false };
+        return {
+          id,
+          msg: action ? "Message deleted" : MESSAGES[id % MESSAGES.length],
+          action,
+          leaving: false,
+        };
       }),
     ]);
   const dismiss = (id: number) =>
@@ -205,7 +266,7 @@ export default function ToastLabPage() {
   return (
     <PageLayout
       title="Lab · Toast"
-      description="Prototype: a notification droplet that condenses at the screen edge and evaporates on dismiss (blur + lift + fade). Click a toast to dismiss it."
+      description="Prototype: a notification droplet that condenses at the screen edge and evaporates on dismiss (blur + lift + fade). Classic controls: close button, auto-dismiss with pause-on-hover, action button."
       hero={
         <>
           <Stage wall>
@@ -239,9 +300,12 @@ export default function ToastLabPage() {
                   >
                     <ToastProto
                       msg={t.msg}
+                      action={t.action}
                       leaving={t.leaving}
                       onGone={() => remove(t.id)}
                       onDismiss={() => dismiss(t.id)}
+                      showClose={showClose}
+                      durationMs={durationSec * 1000}
                       condensePace={condensePace}
                       evaporatePace={evaporatePace}
                       blurAmp={blurAmp}
@@ -259,9 +323,22 @@ export default function ToastLabPage() {
             <button className="btn" onClick={() => fire(3)}>
               toast ×3
             </button>
+            <button className="btn" onClick={() => fire(1, "Undo")}>
+              toast with action
+            </button>
             <button className="btn" onClick={dismissOldest}>
               dismiss oldest
             </button>
+            <Toggle label="close button" value={showClose} set={setShowClose} />
+            <Knob
+              label="auto-dismiss (0 = sticky)"
+              value={durationSec}
+              set={setDurationSec}
+              min={0}
+              max={10}
+              step={0.5}
+              suffix="s"
+            />
             <Knob
               label="condense pace"
               value={condensePace}

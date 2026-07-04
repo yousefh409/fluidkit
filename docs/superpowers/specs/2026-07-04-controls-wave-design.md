@@ -72,8 +72,10 @@ degrades rather than fails.
 ### LiquidSwitch
 
 Track is one engine surface with two wells; the thumb droplet sits seated in one.
-On toggle the droplet stretches toward the far well, the bridge necks and tears
-(`Droplets` tension), and it merges into the far well with a settle wobble.
+The wells hold no visible resting liquid (round-1 review: no idle circle in the
+empty zone) — a transit bead materializes under the thumb as it departs, the
+bridge necks and tears (`Droplets` tension), the residue drains away, and the
+thumb settles into the far well with a wobble.
 Checked/unchecked read as more than thumb position: the track fill tints on the
 on side (color-blind safe, not color-only — position carries the state too).
 
@@ -120,7 +122,8 @@ and the focus meniscus appears; on blur it relaxes. Single-line `<input>` and
 
 A horizontal vessel filling left to right. The fill edge is a live meniscus that
 wobbles subtly while `value` is changing and settles flat when it stops — motion
-communicates "still moving" without a loop running at idle. Determinate only:
+communicates "still moving" without a loop running at idle. Round-1 review:
+keep the wobble quiet (small amplitude, slow frequency); it's a tell, not a show. Determinate only:
 `Thinking` owns indeterminate, and the docs say so.
 
 - `value` / `max` props (native `<progress>` convention); surface carries
@@ -136,8 +139,11 @@ condense, scaled up), sits for `duration` (default ~5s, pausable on hover), then
 evaporates — blur-out + lift + fade, condense played backward. Multiple toasts
 stack with a FlowStagger-style rise; the stack is capped (oldest evaporates early).
 
-- v1 options: `duration`, `dismissible` (close affordance), `id` (dedupe/update).
-  No `toast.promise`, no action buttons, no swipe-to-dismiss (out of scope).
+- v1 has the classic toast controls (round-1 review): `duration` (auto-dismiss,
+  0 = sticky, hover pauses the clock), a close button (`dismissible`, default
+  on, per-toast or provider-wide), `action` (`{ label, onClick }`), and `id`
+  (dedupe/update). The toast body itself is not click-to-dismiss. No
+  `toast.promise`, no swipe-to-dismiss (out of scope).
 - `role="status"` (polite) on the viewport; hover pauses timers.
 - Reduced motion: opacity-only in/out, timers unchanged.
 
@@ -219,7 +225,7 @@ override respected. Native-input forwarding: `name` participates in form submit.
 ## Out of scope (explicitly)
 
 - Switch pointer-drag; Slider ticks, vertical, or dual-thumb range.
-- `toast.promise`, toast action buttons, swipe-to-dismiss.
+- `toast.promise`, swipe-to-dismiss.
 - Menu submenus and checkable items; Select (documented as a Menu+Field recipe).
 - Field floating labels and prefix/suffix slots.
 - Skeleton, Accordion (rejected — covered by `Thinking` / `LiquidPanel`).
