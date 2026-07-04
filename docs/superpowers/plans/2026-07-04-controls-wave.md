@@ -92,17 +92,21 @@ Pure refactor, zero visual change.
 
 ## Phase 4 — Droplet-thumb family: Switch → Checkbox → Slider
 
-- [ ] **LiquidSwitch**: tests first (hidden native checkbox with switch role,
+- [x] **LiquidSwitch**: tests first (hidden native checkbox with switch role,
   controlled + uncontrolled, keyboard toggle, form participation via `name`,
   label association, reduced-motion branch). Then the component with approved
-  Phase-1 tear/merge values. Docs, showcase, changelog. Commit.
-- [ ] **LiquidCheckbox**: same test contract plus `indeterminate` (half-fill
-  meniscus). Reuses Switch's droplet mechanics; extract the shared droplet-thumb
-  internals now (second consumer). Docs, showcase, changelog. Commit.
-- [ ] **LiquidSlider**: tests first (hidden native range input, min/max/step,
-  arrow-key steps, controlled + uncontrolled, drag updates value, reduced-motion
-  branch). Fill read reuses Progress's approved meniscus values; thumb reuses the
-  droplet-thumb internals. Docs, showcase, changelog. Commit.
+  Phase-1 tear/merge values. Docs, showcase, changelog. Commit. (Done: 8
+  tests; new shared `focus.ts` — modality-tracked focus meniscus.)
+- [x] **LiquidCheckbox**: same test contract plus `indeterminate` (half-fill
+  meniscus). Docs, showcase, changelog. Commit. (Done: 7 tests. The shared
+  extraction turned out to be the form-control shell — `formControl.ts`,
+  hidden-input recipe + checked-state pattern — not droplet mechanics; the
+  checkbox's motion is a fall-and-fill, not a tear.)
+- [x] **LiquidSlider**: tests first (hidden native range input, min/max/step,
+  controlled + uncontrolled, change updates value, reduced-motion branch).
+  Fill read reuses Progress's vessel; the hidden native range input covers
+  the track so drag/keyboard are browser-native. Docs, showcase, changelog.
+  Commit. (Done: 7 tests.)
 
 ## Phase 5 — Independents: Progress, Field, Badge
 
