@@ -134,6 +134,13 @@ interface GlState {
   raf: number | null;
   t0: number;
   dead: boolean;
+  /**
+   * Elapsed-time wrap, seconds. Infinity when the fragment shader runs
+   * highp (the norm); a small period on true-mediump GPUs, where
+   * unbounded time quantizes into visible stepping — a rare pattern
+   * reshuffle beats a permanently juddering one.
+   */
+  timeWrap: number;
 }
 
 function compile(
@@ -276,6 +283,17 @@ export function CausticsLayer({
       }
     };
 
+    let hasHighp = true;
+    try {
+      const fmt = gl.getShaderPrecisionFormat?.(
+        gl.FRAGMENT_SHADER,
+        gl.HIGH_FLOAT
+      );
+      hasHighp = !!fmt && fmt.precision > 0;
+    } catch {
+      /* assume highp */
+    }
+
     const state: GlState = {
       canvas,
       gl,
@@ -285,6 +303,7 @@ export function CausticsLayer({
       raf: null,
       t0: performance.now(),
       dead: false,
+      timeWrap: hasHighp ? Infinity : 128,
     };
     // ResizeObserver is near-universal but NOT implied by WebGL support
     // (older embedded WebViews); without it, size once and stay put.
@@ -355,13 +374,25 @@ export function CausticsLayer({
 
     const animating = inView && !reduced;
     const start = () => {
+      // Idempotent: never stack a second loop (restore re-invokes this),
+      // and never start one on a lost context — the restore handler will.
+      if (state.raf !== null) cancelAnimationFrame(state.raf);
+      state.raf = null;
+      if (state.dead) return;
       if (!animating) {
         // Still frame (reduced motion, or offscreen with fresh props).
         frame(STILL_TIME);
         return;
       }
       const loop = (now: number) => {
-        frame(((now - state.t0) / 1000) * paramsRef.current.speed);
+        if (state.dead) {
+          state.raf = null;
+          return;
+        }
+        frame(
+          (((now - state.t0) / 1000) * paramsRef.current.speed) %
+            state.timeWrap
+        );
         state.raf = requestAnimationFrame(loop);
       };
       state.raf = requestAnimationFrame(loop);

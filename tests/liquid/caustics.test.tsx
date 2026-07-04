@@ -80,6 +80,12 @@ describe("CausticsLayer GL lifecycle (fake context)", () => {
       FLOAT: 7,
       TRIANGLES: 8,
       COLOR_BUFFER_BIT: 9,
+      HIGH_FLOAT: 10,
+      getShaderPrecisionFormat: vi.fn(() => ({
+        precision: 23,
+        rangeMin: 127,
+        rangeMax: 127,
+      })),
       createShader: vi.fn(() => ({})),
       shaderSource: vi.fn(),
       compileShader: vi.fn(),
@@ -157,5 +163,29 @@ describe("CausticsLayer GL lifecycle (fake context)", () => {
     expect(container.querySelector("canvas")).toBeNull();
     expect(loseContext).toHaveBeenCalledTimes(1);
     expect(gl.drawArrays).not.toHaveBeenCalled();
+  });
+
+  it("context loss + restore: stops drawing while lost, rebuilds the pipeline and draws again", async () => {
+    const gl = makeFakeGl({ compiles: true });
+    const CausticsLayer = await loadWithGl(gl);
+    const { container, rerender } = render(<CausticsLayer />);
+    const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+    expect(canvas).toBeTruthy();
+    const drawsBeforeLoss = gl.drawArrays.mock.calls.length;
+    const programsBeforeLoss = gl.createProgram.mock.calls.length;
+
+    const lost = new Event("webglcontextlost", { cancelable: true });
+    canvas.dispatchEvent(lost);
+    expect(lost.defaultPrevented).toBe(true);
+
+    // Prop change while the context is lost must not draw on dead GL.
+    rerender(<CausticsLayer intensity={0.9} />);
+    expect(gl.drawArrays.mock.calls.length).toBe(drawsBeforeLoss);
+
+    canvas.dispatchEvent(new Event("webglcontextrestored"));
+    // Restore rebuilds the whole pipeline (a restored context keeps
+    // nothing) and immediately draws again.
+    expect(gl.createProgram.mock.calls.length).toBe(programsBeforeLoss + 1);
+    expect(gl.drawArrays.mock.calls.length).toBeGreaterThan(drawsBeforeLoss);
   });
 });
