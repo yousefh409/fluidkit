@@ -50,4 +50,8 @@ export const REGISTRY: ShowcasePage[] = [
   { slug: "liquid-dialog", title: "LiquidDialog", load: () => import("./pages/LiquidDialog") },
   { slug: "voice-ball", title: "VoiceBall", load: () => import("./pages/VoiceBall") },
   { slug: "liquid-metal", title: "LiquidMetal", load: () => import("./pages/LiquidMetal"), isGpu: true },
+  // Controls-wave prototype labs (throwaway) — removed before the wave merges.
+  { slug: "lab-switch", title: "Lab · Switch", load: () => import("./pages/labs/SwitchLab") },
+  { slug: "lab-progress", title: "Lab · Progress", load: () => import("./pages/labs/ProgressLab") },
+  { slug: "lab-toast", title: "Lab · Toast", load: () => import("./pages/labs/ToastLab") },
 ];
