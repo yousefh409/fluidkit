@@ -21,7 +21,9 @@ export type ShowcasePage = {
  * Final order:
  *   Demos, Droplets, MorphSurface, Thinking, LiquidTabs, FlowStagger,
  *   Ripple, JellyButton, Magnetic, LiquidDrag, DripFuse, MeshGradient,
- *   Silk, then the GPU tier: LiquidMetal.
+ *   Silk, GlassPanes, LiquidCard, MeniscusDivider, LiquidPanel,
+ *   LiquidTooltip, LiquidText, LiquidDialog, VoiceBall, then the GPU
+ *   tier: LiquidMetal.
  *
  * Example entry:
  *   { slug: "jelly-button", title: "JellyButton", load: () => import("./pages/JellyButton") },
@@ -42,5 +44,12 @@ export const REGISTRY: ShowcasePage[] = [
   { slug: "mesh-gradient", title: "MeshGradient", load: () => import("./pages/MeshGradient") },
   { slug: "silk", title: "Silk", load: () => import("./pages/Silk") },
   { slug: "glass-panes", title: "GlassPanes", load: () => import("./pages/GlassPanes") },
+  { slug: "liquid-card", title: "LiquidCard", load: () => import("./pages/LiquidCard") },
+  { slug: "meniscus-divider", title: "MeniscusDivider", load: () => import("./pages/MeniscusDivider") },
+  { slug: "liquid-panel", title: "LiquidPanel", load: () => import("./pages/LiquidPanel") },
+  { slug: "liquid-tooltip", title: "LiquidTooltip", load: () => import("./pages/LiquidTooltip") },
+  { slug: "liquid-text", title: "LiquidText", load: () => import("./pages/LiquidText") },
+  { slug: "liquid-dialog", title: "LiquidDialog", load: () => import("./pages/LiquidDialog") },
+  { slug: "voice-ball", title: "VoiceBall", load: () => import("./pages/VoiceBall") },
   { slug: "liquid-metal", title: "LiquidMetal", load: () => import("./pages/LiquidMetal"), isGpu: true },
 ];
