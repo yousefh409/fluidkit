@@ -40,6 +40,10 @@ export default function LiquidToastPage() {
   const [tint, setTint] = useState("#ffffff");
   const [opacity, setOpacity] = useState(0.82);
   const [color, setColor] = useState(FLAT_COLOR);
+  const [maxWidth, setMaxWidth] = useState(340);
+  const [gap, setGap] = useState(10);
+  const [offset, setOffset] = useState(16);
+  const [visibleToasts, setVisibleToasts] = useState(3);
   // The pack's `opacity` prop replaces the tint's alpha directly — this is
   // the see-through control (default matches the component's 0.82).
   const isDefaultTint = tint === "#ffffff";
@@ -54,7 +58,7 @@ export default function LiquidToastPage() {
           {/* The provider portals its viewport to the page body — toasts
               condense at the real screen corner, exactly like in an app. */}
           <LiquidToastProvider
-            key={`${position}-${duration}-${dismissible}-${material}-${intensity}-${tint}-${opacity}-${color}`}
+            key={`${position}-${duration}-${dismissible}-${material}-${intensity}-${tint}-${opacity}-${color}-${maxWidth}-${gap}-${offset}-${visibleToasts}`}
             position={position}
             duration={duration * 1000}
             dismissible={dismissible}
@@ -63,6 +67,10 @@ export default function LiquidToastPage() {
             opacity={opacity}
             tint={material === "glass" && !isDefaultTint ? tint : undefined}
             color={material === "flat" ? color : undefined}
+            maxWidth={maxWidth}
+            gap={gap}
+            offset={offset}
+            visibleToasts={visibleToasts}
           />
           <Stage wall hint="fire a toast — it condenses at the screen corner">
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -119,6 +127,10 @@ export default function LiquidToastPage() {
               suffix="s"
             />
             <Toggle label="close button" value={dismissible} set={setDismissible} />
+            <Slider label="max width" value={maxWidth} set={setMaxWidth} min={220} max={480} step={10} suffix="px" />
+            <Slider label="stack gap" value={gap} set={setGap} min={4} max={24} step={1} suffix="px" />
+            <Slider label="edge offset" value={offset} set={setOffset} min={8} max={48} step={2} suffix="px" />
+            <Slider label="visible toasts" value={visibleToasts} set={setVisibleToasts} min={1} max={6} step={1} />
             {material === "glass" ? (
               <>
                 <Slider
@@ -140,7 +152,7 @@ export default function LiquidToastPage() {
       usage={
         <Snippet
           code={`// once, near the root
-<LiquidToastProvider${position !== "bottom-right" ? `\n  position="${position}"` : ""}${duration !== 5 ? `\n  duration={${duration * 1000}}` : ""}${!dismissible ? `\n  dismissible={false}` : ""}${material !== "glass" ? `\n  material="${material}" color="${color}"` : ""}${intensity !== 0.7 ? `\n  intensity={${intensity}}` : ""}${!isDefaultOpacity ? `\n  opacity={${opacity}}` : ""}${material === "glass" && !isDefaultTint ? `\n  tint="${tint}"` : ""}>
+<LiquidToastProvider${position !== "bottom-right" ? `\n  position="${position}"` : ""}${duration !== 5 ? `\n  duration={${duration * 1000}}` : ""}${!dismissible ? `\n  dismissible={false}` : ""}${material !== "glass" ? `\n  material="${material}" color="${color}"` : ""}${intensity !== 0.7 ? `\n  intensity={${intensity}}` : ""}${!isDefaultOpacity ? `\n  opacity={${opacity}}` : ""}${maxWidth !== 340 ? `\n  maxWidth={${maxWidth}}` : ""}${gap !== 10 ? `\n  gap={${gap}}` : ""}${offset !== 16 ? `\n  offset={${offset}}` : ""}${visibleToasts !== 3 ? `\n  visibleToasts={${visibleToasts}}` : ""}${material === "glass" && !isDefaultTint ? `\n  tint="${tint}"` : ""}>
   <App />
 </LiquidToastProvider>
 

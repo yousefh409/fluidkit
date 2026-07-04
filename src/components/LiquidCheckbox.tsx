@@ -97,7 +97,7 @@ export function LiquidCheckbox({
   const wall = Math.max(2.5, size * 0.14);
   const inner = size - wall * 2;
   const radius = Math.max(5, size * 0.3);
-  const bleed = Math.ceil(size * 0.8);
+  const bleed = Math.ceil(Math.max(6, size * 0.3));
   const W = size + bleed * 2;
   const H = size + bleed * 2;
   const cx = W / 2;
@@ -116,7 +116,7 @@ export function LiquidCheckbox({
     [material, tint, color, opacity]
   );
   const wellMaterial = useMemo(
-    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.16)", color }),
+    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.22)", color }),
     [material, color]
   );
 
@@ -201,6 +201,15 @@ export function LiquidCheckbox({
     renderer.current?.setScene(buildScene(springs.values[0].get()));
   });
 
+  // Mid-fill (including the flip commit itself, where `settling` hasn't
+  // landed yet) the declarative scene must be the CURRENT spring frame —
+  // the target scene would paint one checked/unchecked frame early and
+  // read as a snap (the LiquidPanel rule).
+  const midFill = animating && (settling || prevTarget.current !== fillTarget);
+  const renderScene = midFill
+    ? buildScene(springs.values[0].get())
+    : staticScene;
+
   /* ------------------------------- render -------------------------------- */
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -238,12 +247,27 @@ export function LiquidCheckbox({
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
           <LiquidRenderer path={wellPath} material={wellMaterial} shadow={shadow} />
         </span>
+        {/* A neutral hairline so the empty well reads as a crisp box on
+            any wall (review: the unchecked state was near-invisible — a
+            white rim can't define a 20px control on a pale page). */}
+        <span
+          aria-hidden
+          data-fluidkit="liquid-checkbox-edge"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: radius,
+            boxShadow:
+              "inset 0 0 0 1px rgba(60, 70, 100, 0.22), inset 0 1px 2px rgba(60, 70, 100, 0.08)",
+            pointerEvents: "none",
+          }}
+        />
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
           <LiquidRenderer
             ref={renderer}
-            path={staticScene.path}
+            path={renderScene.path}
             material={resolved}
-            speculars={staticScene.speculars}
+            speculars={renderScene.speculars}
             specularSlots={resolved.specular && sceneLight ? 1 : 0}
             shadow={false}
           />

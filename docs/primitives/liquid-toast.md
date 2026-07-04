@@ -45,6 +45,10 @@ Calls made before the provider mounts are queued and flushed on mount.
 | `position` | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `"bottom-right"` | Screen corner the toasts condense in. |
 | `duration` | `number` | `5000` | Default auto-dismiss delay in ms; `0` = sticky. Hover pauses the clock. |
 | `dismissible` | `boolean` | `true` | Default close-button visibility. |
+| `visibleToasts` | `number` | `3` | Live toasts beyond this cap push the oldest out early. |
+| `gap` | `number` | `10` | Vertical gap between stacked toasts in px. |
+| `offset` | `number` | `16` | Distance from the screen edges in px. |
+| `minWidth` / `maxWidth` | `number` | `200` / `340` | Toast width bounds; content sizes within. |
 
 Plus the surface style pack: `material`, `tint`, `color`, `intensity` (defaults
 to `"present"`, matching the approved prototype's glint), `light`, `reflection`,
@@ -68,7 +72,6 @@ when called with no argument. The toast body itself is not click-to-dismiss.
 
 ## Behavior
 
-- The stack caps at 3 live toasts — the oldest evaporates early.
 - The viewport is `role="status"` / `aria-live="polite"`; new toasts are
   announced without interrupting.
 - Override stacking from a stylesheet: `:root { --fluidkit-z-toast: 60; }`.

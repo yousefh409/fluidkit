@@ -10,9 +10,9 @@ drag, keyboard steps, `min`/`max`/`step`, form submission, and screen readers
 are all native browser behavior; fluidkit only paints from the input's value.
 Keyboard focus shows the shared focus meniscus.
 
-While the user is actively sliding (pointer held, or keyboard-stepping), the
-channel liquid **saturates into the full fill tint**, relaxing back to the
-quiet read on release — the liquid responds to being touched.
+At rest the channel and thumb hold the **full fill tint**; while the user is
+actively sliding they turn to clear glass, refilling promptly on release —
+the liquid responds to being touched.
 
 ## Usage
 

@@ -118,6 +118,15 @@ export interface LiquidToastProviderProps extends SurfaceStyleProps {
   duration?: number;
   /** Default close-button visibility. Defaults to `true`. */
   dismissible?: boolean;
+  /** Live toasts beyond this cap push the oldest out early. Defaults to `3`. */
+  visibleToasts?: number;
+  /** Vertical gap between stacked toasts in px. Defaults to `10`. */
+  gap?: number;
+  /** Distance from the screen edges in px. Defaults to `16`. */
+  offset?: number;
+  /** Toast width bounds in px. Default `200`–`340`; content sizes within. */
+  minWidth?: number;
+  maxWidth?: number;
   /**
    * How loudly the material reads. Defaults to `"present"` — a documented
    * divergence from the pack's usual `"whisper"`: 0.7 reproduces the
@@ -133,17 +142,18 @@ interface ToastRecord extends ToastPayload {
   leaving: boolean;
 }
 
-/** Non-leaving toasts beyond this cap push the oldest out early. */
-const MAX_VISIBLE = 3;
 /** How long a leaving toast stays mounted for its evaporate to finish. */
 const EXIT_MS = 520;
-/** Stack gap in px (approved prototype value). */
-const GAP = 10;
 
 export function LiquidToastProvider({
   position = "bottom-right",
   duration = 5000,
   dismissible = true,
+  visibleToasts = 3,
+  gap = 10,
+  offset = 16,
+  minWidth = 200,
+  maxWidth = 340,
   material = "glass",
   tint = "rgba(255, 255, 255, 0.82)",
   opacity,
@@ -181,6 +191,8 @@ export function LiquidToastProvider({
   };
   const dismissRef = useRef(dismissToast);
   dismissRef.current = dismissToast;
+  const visibleToastsRef = useRef(visibleToasts);
+  visibleToastsRef.current = Math.max(1, visibleToasts);
 
   useEffect(() => {
     const add = (payload: ToastPayload) => {
@@ -196,7 +208,7 @@ export function LiquidToastProvider({
       }
       // Cap the stack: the oldest live toast evaporates early.
       const live = listRef.current.filter((t) => !t.leaving);
-      if (live.length >= MAX_VISIBLE) dismissRef.current(live[0].id);
+      if (live.length >= visibleToastsRef.current) dismissRef.current(live[0].id);
       listRef.current = [
         ...listRef.current.filter((t) => t.id !== payload.id),
         { ...payload, nonce: 0, leaving: false },
@@ -239,8 +251,8 @@ export function LiquidToastProvider({
     display: "flex",
     flexDirection: top ? "column" : "column-reverse",
     alignItems: position.endsWith("right") ? "flex-end" : "flex-start",
-    [top ? "top" : "bottom"]: 16,
-    [position.endsWith("right") ? "right" : "left"]: 16,
+    [top ? "top" : "bottom"]: offset,
+    [position.endsWith("right") ? "right" : "left"]: offset,
     pointerEvents: "none",
   };
 
@@ -261,6 +273,9 @@ export function LiquidToastProvider({
                 key={t.id}
                 record={t}
                 top={top}
+                gap={gap}
+                minWidth={minWidth}
+                maxWidth={maxWidth}
                 defaultDuration={duration}
                 defaultDismissible={dismissible}
                 surface={surface}
@@ -303,6 +318,9 @@ interface ItemSurfaceProps {
 function ToastItem({
   record,
   top,
+  gap,
+  minWidth,
+  maxWidth,
   defaultDuration,
   defaultDismissible,
   surface,
@@ -310,6 +328,9 @@ function ToastItem({
 }: {
   record: ToastRecord;
   top: boolean;
+  gap: number;
+  minWidth: number;
+  maxWidth: number;
   defaultDuration: number;
   defaultDismissible: boolean;
   surface: ItemSurfaceProps;
@@ -466,7 +487,7 @@ function ToastItem({
 
   /* Stack collapse: the wrapper's height animates to 0 while leaving. */
   const wrapperStyle: CSSProperties = {
-    height: leaving ? 0 : size ? size.h + GAP : "auto",
+    height: leaving ? 0 : size ? size.h + gap : "auto",
     transition: "height 320ms ease",
     display: "flex",
     alignItems: top ? "flex-start" : "flex-end",
@@ -514,8 +535,8 @@ function ToastItem({
             display: "flex",
             alignItems: "center",
             gap: 10,
-            maxWidth: 340,
-            minWidth: 200,
+            maxWidth,
+            minWidth,
             padding: "12px 12px 12px 18px",
             fontSize: 13,
             fontWeight: 500,

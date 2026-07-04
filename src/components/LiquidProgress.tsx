@@ -213,6 +213,14 @@ export function LiquidProgress({
     height / 2
   );
 
+  // Mid-fill the declarative scene must be the CURRENT spring frame — the
+  // target would paint the destination one commit early (LiquidPanel rule).
+  const midFill =
+    animating && (settling || prevFraction.current !== fraction);
+  const renderScene = midFill
+    ? buildScene(Math.max(0, Math.min(1, fill.values[0].get())), 1)
+    : staticScene;
+
   return (
     <div
       ref={ref}
@@ -237,9 +245,9 @@ export function LiquidProgress({
       <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
         <LiquidRenderer
           ref={renderer}
-          path={staticScene.path}
+          path={renderScene.path}
           material={fillMaterial}
-          speculars={staticScene.speculars}
+          speculars={renderScene.speculars}
           specularSlots={fillMaterial.specular && sceneLight ? 1 : 0}
         />
       </span>

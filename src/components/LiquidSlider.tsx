@@ -11,12 +11,13 @@
  * (`defaultValue`) both work. Keyboard focus shows the shared focus
  * meniscus.
  *
- * While the user is actively sliding (pointer held, or keyboard-stepping),
- * the channel liquid SATURATES into the full fill tint, relaxing back to
- * the quiet read on release — the liquid responds to being touched.
+ * At rest the channel and thumb hold the FULL fill tint; while the user
+ * is actively sliding (pointer held, or right after a keyboard step) they
+ * turn to clear glass, refilling on release — the liquid responds to
+ * being touched.
  *
  * Reduced motion: thumb and fill track the value with no spring lag; the
- * active saturation still applies (state, not motion).
+ * touch feedback still applies (state, not motion).
  */
 
 import type { CSSProperties, InputHTMLAttributes, ReactNode } from "react";
@@ -130,10 +131,24 @@ export function LiquidSlider({
 
   const focus = useFocusVisible();
 
-  // "Being slid": pointer held on the control, or keyboard-stepping with
-  // focus. The channel liquid saturates into the fill tint while true.
+  // "Being slid": pointer held on the control, or within a short window
+  // of a keyboard step. Kept tight so the liquid settles back to its
+  // filled rest state promptly on release (review: the old settle-length
+  // window felt laggy).
   const [pointerHeld, setPointerHeld] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
+  const [keyboardActive, setKeyboardActive] = useState(false);
+  const keyboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const markKeyboardActive = () => {
+    setKeyboardActive(true);
+    if (keyboardTimer.current) clearTimeout(keyboardTimer.current);
+    keyboardTimer.current = setTimeout(() => setKeyboardActive(false), 250);
+  };
+  useEffect(
+    () => () => {
+      if (keyboardTimer.current) clearTimeout(keyboardTimer.current);
+    },
+    []
+  );
   useEffect(() => {
     if (!pointerHeld) return;
     const release = () => setPointerHeld(false);
@@ -282,7 +297,14 @@ export function LiquidSlider({
     vividRenderer.current?.setScene(fillScene);
   });
 
-  const active = pointerHeld || (inputFocused && settling);
+  const active = pointerHeld || keyboardActive;
+
+  // Mid-slide the declarative scenes must be the CURRENT spring frame —
+  // the target would paint the destination one commit early and read as
+  // a snap (the LiquidPanel rule).
+  const midSlide = animating && (settling || prevX.current !== targetX);
+  const renderThumb = midSlide ? buildThumbScene(x.values[0].get()) : staticThumb;
+  const renderFill = midSlide ? buildFillScene(x.values[0].get()) : staticFill;
 
   /* ------------------------------- render -------------------------------- */
 
@@ -327,48 +349,50 @@ export function LiquidSlider({
           <LiquidRenderer path={trackPath} material={trackMaterial} shadow={shadow} />
         </span>
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
-          <LiquidRenderer ref={fillRenderer} path={staticFill.path} material={fillMaterial} />
+          <LiquidRenderer ref={fillRenderer} path={renderFill.path} material={fillMaterial} />
         </span>
-        {/* The saturated fill, fading in while the user is sliding. */}
+        {/* The channel rests FILLED with the tint and turns to clear glass
+            while the user is sliding (review: the inverse read is better
+            UX), refilling on release. */}
         <span
           aria-hidden
           data-fluidkit="liquid-slider-active-fill"
           style={{
             position: "absolute",
             inset: -bleed,
-            opacity: active ? 1 : 0,
+            opacity: active ? 0 : 1,
             transition: "opacity 180ms ease",
             pointerEvents: "none",
           }}
         >
-          <LiquidRenderer ref={vividRenderer} path={staticFill.path} material={vividMaterial} />
+          <LiquidRenderer ref={vividRenderer} path={renderFill.path} material={vividMaterial} />
         </span>
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
           <LiquidRenderer
             ref={thumbRenderer}
-            path={staticThumb.path}
+            path={renderThumb.path}
             material={resolved}
-            speculars={staticThumb.speculars}
+            speculars={renderThumb.speculars}
             specularSlots={resolved.specular && sceneLight ? 1 : 0}
             shadow={shadow}
           />
         </span>
-        {/* The thumb saturates with the fill while being slid — the circle
-            answers the touch too, not just the channel. */}
+        {/* The thumb answers the touch with the channel: tinted at rest,
+            glass in hand. */}
         <span
           aria-hidden
           data-fluidkit="liquid-slider-active-thumb"
           style={{
             position: "absolute",
             inset: -bleed,
-            opacity: active ? 1 : 0,
+            opacity: active ? 0 : 1,
             transition: "opacity 180ms ease",
             pointerEvents: "none",
           }}
         >
           <LiquidRenderer
             ref={vividThumbRenderer}
-            path={staticThumb.path}
+            path={renderThumb.path}
             material={vividMaterial}
           />
         </span>
@@ -391,16 +415,11 @@ export function LiquidSlider({
           onChange={(e) => {
             const next = Number(e.target.value);
             if (!isControlled) setInternal(next);
+            if (!pointerHeld) markKeyboardActive();
             onValueChange?.(next);
           }}
-          onFocus={(e) => {
-            setInputFocused(true);
-            focus.onFocus(e);
-          }}
-          onBlur={() => {
-            setInputFocused(false);
-            focus.onBlur();
-          }}
+          onFocus={focus.onFocus}
+          onBlur={focus.onBlur}
           {...inputRest}
         />
       </span>

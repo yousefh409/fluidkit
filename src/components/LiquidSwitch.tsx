@@ -259,8 +259,8 @@ export function LiquidSwitch({
     return { path, speculars };
   };
 
-  const staticScene = useMemo<Scene>(() => {
-    const thumb = { x: on ? seatR : seatL, y: cy, r: thumbR };
+  const thumbSceneAt = (tx: number): Scene => {
+    const thumb = { x: tx, y: cy, r: thumbR };
     return {
       path: circlePath(thumb, thumb.r),
       speculars:
@@ -268,7 +268,12 @@ export function LiquidSwitch({
           ? [specularPlacement(thumb, sceneLight, volume)]
           : [],
     };
-  }, [on, seatR, seatL, cy, thumbR, resolved.specular, sceneLight, volume]);
+  };
+  const staticScene = useMemo<Scene>(
+    () => thumbSceneAt(on ? seatR : seatL),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [on, seatR, seatL, cy, thumbR, resolved.specular, sceneLight, volume]
+  );
 
   useEffect(() => {
     if (!(animating && settlingRef.current)) {
@@ -295,6 +300,14 @@ export function LiquidSwitch({
     trackH,
     trackH / 2
   );
+
+  // Mid-travel (incl. the flip commit, where `settling` hasn't landed yet)
+  // the declarative scene must be the CURRENT spring frame — the target
+  // would paint the far seat one frame early (the LiquidPanel rule).
+  const midTravel = animating && (settling || prevOn.current !== on);
+  const renderScene = midTravel
+    ? thumbSceneAt(x.values[0].get())
+    : staticScene;
 
   return (
     <label
@@ -339,9 +352,9 @@ export function LiquidSwitch({
         <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
           <LiquidRenderer
             ref={renderer}
-            path={staticScene.path}
+            path={renderScene.path}
             material={resolved}
-            speculars={staticScene.speculars}
+            speculars={renderScene.speculars}
             specularSlots={resolved.specular && sceneLight ? 3 : 0}
             shadow={shadow}
           />
