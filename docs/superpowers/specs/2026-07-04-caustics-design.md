@@ -1,34 +1,73 @@
 # Caustics — design
 
 Date: 2026-07-04
-Status: approved (pending spec review)
+Status: approved (pending spec review) · v2 — reshaped from standalone background to engine material
 
 ## What it is
 
-`Caustics` is a new ambient background component: warm caustic light — the webbed
-patterns sunlight makes when it passes through water — drifting slowly across a
-plaster-toned surface. "Poolside light."
+Caustics — the webbed light patterns sunlight makes through water ("poolside light") —
+ships as a **first-class liquid-engine material**, joining `glass`, `mercury`, and
+`flat`. Every surface component that takes the engine `material` prop gets
+`material="caustics"` natively: LiquidCard, LiquidPanel, LiquidDialog, LiquidTooltip,
+JellyButton, MorphSurface, Droplets, Thinking, VoiceBall, MeniscusDivider.
 
-It joins `Silk`, `MeshGradient`, and `GlassPanes` in the backgrounds family and uses the
-same usage contract: the component IS the background layer (`position: absolute; inset: 0;
-pointer-events: none`), placed inside a `position: relative` parent alongside the
-consumer's content.
+A thin `Caustics` background component (sibling to `Silk` / `MeshGradient`) wraps the
+same layer for whole-surface backdrops, using the established backgrounds contract
+(`position: absolute; inset: 0; pointer-events: none` inside a `position: relative`
+parent).
 
 ## How we got here
 
-Judged live across five prototype rounds (water lab). Decisions locked along the way:
+Judged live across five prototype rounds (water lab):
 
-- Water direction narrowed to ambient caustic light ("poolside light"). Interactive
-  water (fluid cursor drag + water-glass card) was prototyped through a real
-  Navier–Stokes pass and **dropped for now** — prototypes preserved in the lab for a
-  future revisit.
-- Look: warm, quiet, light-mode; light as a material, not blue paint. Low amplitude,
-  slow drift, light concentrated in a soft diagonal sunbeam band.
-- Engine: **WebGL**, chosen over a CSS/SVG twin built for a side-by-side face-off.
-  The deciding difference: shader light continuously *reforms* (filaments merge and
-  split); CSS layers can only drift fixed patterns.
+- Water direction narrowed to ambient caustic light. Interactive water (fluid cursor,
+  water-glass card, wave simulation) was prototyped through a real Navier–Stokes pass
+  and **dropped for now**; lab pages preserved for a future revisit.
+- Look: warm, quiet, light-mode; light as a material, not blue paint. Slow drift,
+  light concentrated in a soft diagonal sunbeam band.
+- Engine: **WebGL**, chosen over a purpose-built CSS/SVG twin in a side-by-side
+  face-off (shader light continuously *reforms*; CSS can only drift fixed patterns).
+- Shipping shape: **engine material** (user decision), with the background component
+  layered on top of the same internals.
+
+## Architecture
+
+One new engine piece, one hook point, one thin component:
+
+1. **`CausticsLayer`** (internal, `src/liquid/caustics.tsx`) — the WebGL canvas:
+   fullscreen-triangle fragment shader, absolute-inset, pointer-events none. Owns
+   boot, resize, visibility gating, fallback, and cleanup. Shared by both consumption
+   modes. ~2–3 kB min+gz, no dependencies.
+2. **Material system** (`src/liquid/materials.ts`) — `LiquidMaterial` gains
+   `"caustics"`. `resolveMaterial("caustics", …)` returns:
+   - `fillStyle`: the plaster-gradient CSS base — this is also the SSR / no-WebGL
+     rendering, so the surface never flashes or blacks out;
+   - `kind: "caustics"` as the renderer's signal to mount the layer;
+   - `specular: false` — the caustic light *is* the highlight; painting the glass
+     speculars on top would double the light sources (house rule: one light).
+3. **`LiquidRenderer`** (`src/liquid/LiquidRenderer.tsx`) — when
+   `material.kind === "caustics"`, renders `<CausticsLayer/>` inside the existing
+   clipped fill div, above `fillStyle`. The surface's `clipPath` clips the canvas for
+   free. **No surface component changes** — all ten pick the material up through the
+   renderer.
+4. **`Caustics` component** (`src/components/Caustics.tsx`) — backgrounds-family
+   wrapper: plaster base + `CausticsLayer`, exposing the raw knobs.
 
 ## Public API
+
+Surfaces (no new props on components):
+
+```tsx
+<LiquidCard material="caustics" />
+<JellyButton material="caustics" />
+```
+
+Material-level tuning stays minimal: `resolveMaterial` options gain
+`light?: string` (light color, default warm ivory) alongside the existing `color`
+(wall/base). Motion knobs are engine defaults on surfaces — surfaces should look
+right out of the box, not sprout six props.
+
+Backdrop (raw params, backgrounds house rule):
 
 ```ts
 export interface CausticsProps extends HTMLAttributes<HTMLDivElement> {
@@ -47,56 +86,55 @@ export interface CausticsProps extends HTMLAttributes<HTMLDivElement> {
 }
 ```
 
-Raw parameters only, no presets (house rule for backgrounds). `className`, `style`, and
-remaining div attributes pass through to the root.
-
 ## Rendering
 
-- Self-contained WebGL1 canvas: one fullscreen triangle, one fragment shader, small
-  runtime (~2–3 kB min+gz budget). No dependencies; Motion is not involved.
+- WebGL1, one fullscreen triangle, one fragment shader.
 - **The shader must be an original clean-room implementation.** The prototype adapted
-  the well-known "Tileable Water Caustic" Shadertoy (CC BY-NC-SA) — that code cannot
-  ship in an MIT library. Reimplement the look with our own math (iterative
-  domain-warped sine accumulation or Voronoi-ridge extraction), tuned by eye against
-  the approved prototype.
-- Colors arrive as uniforms (parsed once per prop change); `intensity`, `scale`,
-  `speed`, `band` are uniforms too — prop changes must not recompile the program.
-- Canvas resolution follows element size via `ResizeObserver`, device-pixel-ratio
-  capped at 1.5.
-- The render loop runs only while visible: `IntersectionObserver` gates rAF;
-  browser rAF throttling handles hidden tabs.
+  the "Tileable Water Caustic" Shadertoy (CC BY-NC-SA); that code cannot ship in an
+  MIT library. Reimplement the look with our own math (iterative domain-warped sine
+  accumulation or Voronoi-ridge extraction), tuned by eye against the approved
+  prototype.
+- All knobs are uniforms; prop changes never recompile the program.
+- Canvas resolution tracks element size via `ResizeObserver`, DPR capped at 1.5.
+- rAF gated by `IntersectionObserver` (offscreen surfaces render nothing per frame);
+  browser rAF throttling covers hidden tabs.
+- Small surfaces (buttons, tooltips) get the same shader at tiny cost — resolution
+  scales with the element.
 
 ## Degradation & lifecycle
 
-- No WebGL / context creation fails / shader compile fails → render the static CSS
-  fallback: the plaster gradient plus a soft warm radial tint. Never throw, never
-  render a black box.
-- `prefers-reduced-motion: reduce` → render exactly one frame, no loop (a frozen
-  caustic reads as a texture).
-- `webglcontextlost` → prevent default, attempt one restore on `webglcontextrestored`;
-  if restore fails, swap to the CSS fallback.
-- SSR-safe: no `window`/GL access at module scope or during server render; GL boots in
-  an effect after mount.
-- Unmount: cancel rAF, disconnect observers, release the GL program/buffers via
-  `WEBGL_lose_context` when available.
+- No WebGL / context or compile failure → the layer renders nothing; the material's
+  CSS `fillStyle` beneath it is the design's own fallback. Never throw, never black.
+- `prefers-reduced-motion: reduce` → render one still frame, no loop.
+- `webglcontextlost` → prevent default, one restore attempt; on failure remove the
+  canvas.
+- SSR-safe: no `window`/GL at module scope; GL boots in an effect post-mount.
+- Unmount: cancel rAF, disconnect observers, `WEBGL_lose_context` when available.
+- Many caustic surfaces on one page each own a small context; browsers cap contexts
+  (~8–16) — document the guidance (a page should have a handful, not dozens) and
+  degrade gracefully to the CSS base when context creation is refused.
 
 ## Files
 
-- `src/components/Caustics.tsx` — component + shader source string.
-- `src/components/index.ts`, `src/index.ts` — exports.
-- `tests/components/Caustics.test.tsx` — renders with content visible; jsdom (no
-  WebGL) exercises the CSS fallback branch; reduced-motion renders single frame
-  (mocked GL); prop passthrough (`className`, `style`, aria); unmount cleans up
-  without errors.
-- `docs/primitives/caustics.md` — usage + props, matching the other primitive docs.
-- `playground/showcase` — registry entry + showcase page with the approved
-  poolside-light treatment.
-- `CHANGELOG.md` entry; size budget re-pinned in `scripts`.
+- `src/liquid/caustics.tsx` — `CausticsLayer` + shader (new).
+- `src/liquid/materials.ts` — `"caustics"` kind + `light` option.
+- `src/liquid/LiquidRenderer.tsx` — mount hook for the layer.
+- `src/components/Caustics.tsx` — background component (new).
+- `src/components/index.ts`, `src/index.ts`, `src/liquid/index.ts` — exports.
+- Tests: `tests/liquid/materials.test.ts` (resolve + fallback contract),
+  `tests/liquid/caustics.test.tsx` (layer lifecycle in jsdom → fallback branch,
+  reduced motion, cleanup), `tests/components/Caustics.test.tsx` (backgrounds
+  contract, prop passthrough), plus one surface smoke test
+  (`LiquidCard material="caustics"` renders content + base fill in jsdom).
+- `docs/primitives/caustics.md` — both consumption modes.
+- `playground/showcase` — registry entry + page: backdrop hero, card/button/panel
+  with `material="caustics"`.
+- `CHANGELOG.md`; size budget re-pinned.
 
 ## Out of scope (explicitly)
 
-- Interactive water: fluid cursor drag, water-glass card, wave/ripple simulation —
-  prototyped, parked. If revisited, it is its own spec.
-- Dark mode tuning beyond sane defaults (colors are raw props; consumers can pass
-  dark-friendly values).
+- Interactive water (fluid cursor, water-glass, ripple sim) — parked; own spec if revived.
+- Components with their own material enums (`Silk`, `Ripple`, `LiquidText`,
+  `LiquidTabs`) — unchanged this round.
+- Dark-mode tuning beyond raw color props.
 - Framework-agnostic core.
