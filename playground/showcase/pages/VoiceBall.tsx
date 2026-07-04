@@ -59,6 +59,7 @@ export default function VoiceBallPage() {
   const [tintName, setTintName] = useState<TintName>("none");
   const [size, setSize] = useState(96);
   const [intensity, setIntensity] = useState(0.5);
+  const [refraction, setRefraction] = useState(false);
   const level = useVoiceLevel(auto, manual);
 
   return (
@@ -75,6 +76,7 @@ export default function VoiceBallPage() {
               material={material}
               tint={TINTS[tintName]}
               intensity={intensity}
+              refraction={refraction}
               color={material !== "glass" ? FLAT_COLOR : undefined}
             />
           </Stage>
@@ -86,6 +88,7 @@ export default function VoiceBallPage() {
             <Seg label="tint" value={tintName} set={setTintName} options={TINT_NAMES} />
             <Slider label="size" value={size} set={setSize} min={48} max={160} step={8} suffix="px" />
             <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
+            <Toggle label="refraction" value={refraction} set={setRefraction} />
           </Controls>
         </>
       }
@@ -107,7 +110,7 @@ export default function VoiceBallPage() {
       }
       usage={
         <Snippet code={`// level: 0-1 from your audio stack (e.g. an AnalyserNode)
-<VoiceBall mode="${mode}" level={level} size={${size}} material="${material}"${tintName !== "none" ? ` tint="${TINTS[tintName]}"` : ""} intensity={${intensity}} />`} />
+<VoiceBall mode="${mode}" level={level} size={${size}} material="${material}"${tintName !== "none" ? ` tint="${TINTS[tintName]}"` : ""} intensity={${intensity}}${refraction ? "\n  refraction" : ""} />`} />
       }
     />
   );

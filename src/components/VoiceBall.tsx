@@ -34,6 +34,7 @@ import {
   defaultLight,
   resolveMaterial,
   specularPlacement,
+  useRefraction,
 } from "../liquid";
 import type {
   LiquidBody,
@@ -69,6 +70,12 @@ export interface VoiceBallProps extends HTMLAttributes<HTMLDivElement> {
   light?: Vec | null;
   /** Paint specular reflections on glass. Defaults to `true`. */
   reflection?: boolean;
+  /**
+   * Edge lensing on glass via an SVG displacement filter inside
+   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
+   * blur elsewhere). Defaults to `false`.
+   */
+  refraction?: boolean;
   /** Drop shadow under the ball. Defaults to `true`. */
   shadow?: boolean;
 }
@@ -228,6 +235,7 @@ export function VoiceBall({
   intensity = "whisper",
   light,
   reflection = true,
+  refraction = false,
   shadow = true,
   className,
   style,
@@ -248,9 +256,14 @@ export function VoiceBall({
   levelRef.current = Math.min(Math.max(level, 0), 1);
   const smoothedRef = useRef(0);
 
+  const { url: refractionUrl, defs: refractionDefs } = useRefraction(
+    refraction && material === "glass",
+    canvas,
+    canvas
+  );
   const resolved = useMemo(
-    () => resolveMaterial(material, { tint, color }),
-    [material, tint, color]
+    () => resolveMaterial(material, { tint, color, refractionUrl }),
+    [material, tint, color, refractionUrl]
   );
   const volume = resolveIntensity(intensity);
   const sceneLight = useMemo(() => {
@@ -330,6 +343,7 @@ export function VoiceBall({
           pointerEvents: "none",
         }}
       >
+        {refractionDefs}
         <LiquidRenderer
           ref={renderer}
           path={staticScene.path}
