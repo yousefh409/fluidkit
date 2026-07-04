@@ -36,6 +36,7 @@ import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import { focusMeniscusStyle, useFocusVisible } from "./focus";
+import { useCheckedState, visuallyHiddenInput } from "./formControl";
 import type { SurfaceStyleProps } from "./surface";
 
 export interface LiquidSwitchProps
@@ -79,14 +80,6 @@ interface Scene {
   speculars: SpecularSpot[];
 }
 
-const visuallyHiddenInput: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  opacity: 0,
-  margin: 0,
-  cursor: "inherit",
-};
-
 export function LiquidSwitch({
   checked,
   defaultChecked,
@@ -110,9 +103,8 @@ export function LiquidSwitch({
   const prefersReducedMotion = usePrefersReducedMotion();
   const animating = !prefersReducedMotion;
 
-  const isControlled = checked !== undefined;
-  const [internal, setInternal] = useState(defaultChecked ?? false);
-  const on = isControlled ? checked : internal;
+  const state = useCheckedState(checked, defaultChecked, onCheckedChange);
+  const on = state.checked;
 
   const focus = useFocusVisible();
 
@@ -365,12 +357,9 @@ export function LiquidSwitch({
           role="switch"
           style={visuallyHiddenInput}
           disabled={disabled}
-          checked={isControlled ? checked : undefined}
-          defaultChecked={isControlled ? undefined : defaultChecked}
-          onChange={(e) => {
-            if (!isControlled) setInternal(e.target.checked);
-            onCheckedChange?.(e.target.checked);
-          }}
+          checked={checked !== undefined ? checked : undefined}
+          defaultChecked={checked !== undefined ? undefined : defaultChecked}
+          onChange={(e) => state.handleChange(e.target.checked)}
           onFocus={focus.onFocus}
           onBlur={focus.onBlur}
           {...inputRest}

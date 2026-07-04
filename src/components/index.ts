@@ -52,6 +52,8 @@ export { VoiceBall } from "./VoiceBall";
 export type { VoiceBallProps, VoiceBallMode } from "./VoiceBall";
 export { LiquidSwitch } from "./LiquidSwitch";
 export type { LiquidSwitchProps } from "./LiquidSwitch";
+export { LiquidCheckbox } from "./LiquidCheckbox";
+export type { LiquidCheckboxProps } from "./LiquidCheckbox";
 export { LiquidMenu } from "./LiquidMenu";
 export type {
   LiquidMenuProps,
