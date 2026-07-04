@@ -53,29 +53,19 @@ import {
   specularPlacement,
   useRefraction,
 } from "../liquid";
-import type { LiquidMaterial, LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
+import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings, type SpringConfig } from "../liquid/useMotionSprings";
 import { ACTIVATION_KEYS, DEFAULT_INTENSITY, DEFAULT_SPRING } from "../hooks/useSquish";
+import { resolveIntensity } from "./intensity";
+import type { SurfaceStyleProps } from "./surface";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
 export interface JellyButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
-  material?: LiquidMaterial;
-  tint?: string;
-  color?: string;
-  /** Scene light in button coordinates; null disables speculars. */
-  light?: Vec | null;
-  /** Paint specular reflections on glass. Defaults to `true`. */
-  reflection?: boolean;
-  /**
-   * Edge lensing on glass via an SVG displacement filter inside
-   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
-   * blur elsewhere). Defaults to `false`.
-   */
-  refraction?: boolean;
+  extends SurfaceStyleProps,
+    ButtonHTMLAttributes<HTMLButtonElement> {
   /** Fractional squash at full press (volume-preserving). Defaults to the
    * same `0.12` as `useSquish`. */
-  intensity?: number;
+  squash?: number;
   /** Resting pill width in px. Defaults to `160`. */
   width?: number;
   /** Resting pill height in px. Defaults to `48`. */
@@ -135,7 +125,7 @@ function settleMs(s: SpringConfig): number {
  */
 /** Press dent: gaussian falloff radius as a fraction of pill height. */
 const DENT_SIGMA_RATIO = 0.55;
-/** Press dent: max depth as a multiple of `height · intensity`. */
+/** Press dent: max depth as a multiple of `height · squash`. */
 const DENT_DEPTH_RATIO = 1.5;
 /** Release wave lifetime. */
 const WAVE_MS = 500;
@@ -181,8 +171,8 @@ interface JellyDeform {
   dent: number;
   /** Seconds since release while the wave runs, else null. */
   waveT: number | null;
-  /** The button's `intensity` prop — scales the dent depth. */
-  intensity: number;
+  /** The button's `squash` prop — scales the dent depth. */
+  squash: number;
 }
 
 const clamp = (n: number, lo: number, hi: number) =>
@@ -268,7 +258,7 @@ function deformedPillPath(
     return Math.exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
   });
   const mean = gauss.reduce((s, g) => s + g, 0) / gauss.length;
-  const dentPx = h * d.intensity * DENT_DEPTH_RATIO;
+  const dentPx = h * d.squash * DENT_DEPTH_RATIO;
   const waveEnv =
     d.waveT !== null ? WAVE_AMP * Math.exp(-d.waveT / WAVE_TAU) : 0;
   const front = d.waveT !== null ? WAVE_SPEED * d.waveT : 0;
@@ -293,6 +283,7 @@ function buildJellyScene(
   cx: number,
   cy: number,
   light: Vec | null,
+  intensity: number,
   deform?: JellyDeform | null,
   glint?: SpecularSpot | null
 ): Scene {
@@ -304,7 +295,11 @@ function buildJellyScene(
   const speculars: SpecularSpot[] = [];
   if (light) {
     speculars.push(
-      specularPlacement({ x: cx, y: cy, r: Math.min(w, h) * 0.48 }, light, 0.28)
+      specularPlacement(
+        { x: cx, y: cy, r: Math.min(w, h) * 0.48 },
+        light,
+        0.4 * intensity
+      )
     );
   }
   if (glint) speculars.push(glint);
@@ -318,7 +313,12 @@ export function JellyButton({
   light,
   reflection = true,
   refraction = false,
-  intensity = DEFAULT_INTENSITY,
+  // Material volume defaults "present" (0.7) — brighter than the surface
+  // family's "whisper", because the button's glint was designed brighter:
+  // 0.4 · 0.7 reproduces the pre-pack 0.28 specular exactly.
+  intensity = "present",
+  shadow = true,
+  squash = DEFAULT_INTENSITY,
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT,
   spring = DEFAULT_SPRING,
@@ -350,10 +350,10 @@ export function JellyButton({
   // body never leaves its resting size.
   const geometryPressed = pressed && animating;
 
-  // Bleed canvas: at full press the body widens by width·intensity (so
-  // width·intensity/2 per side); ceil(width·intensity) gives 2x headroom
+  // Bleed canvas: at full press the body widens by width·squash (so
+  // width·squash/2 per side); ceil(width·squash) gives 2x headroom
   // for the spring's release overshoot.
-  const bleed = Math.ceil(width * intensity);
+  const bleed = Math.ceil(width * squash);
   const canvasW = width + bleed * 2;
   const canvasH = height + bleed * 2;
   const cx = canvasW / 2;
@@ -406,8 +406,8 @@ export function JellyButton({
     spring
   );
 
-  const targetW = geometryPressed ? width * (1 + intensity) : width;
-  const targetH = geometryPressed ? height / (1 + intensity) : height;
+  const targetW = geometryPressed ? width * (1 + squash) : width;
+  const targetH = geometryPressed ? height / (1 + squash) : height;
 
   // Where the current/last press landed, in canvas coordinates (null for
   // keyboard presses — those stay symmetric). Timing refs drive the
@@ -416,10 +416,18 @@ export function JellyButton({
   const pressedAt = useRef<number | null>(null);
   const releasedAt = useRef<number | null>(null);
 
+  const volume = resolveIntensity(intensity);
   const staticScene = useMemo(
     () =>
-      buildJellyScene(targetW, targetH, cx, cy, resolved.specular ? sceneLight : null),
-    [targetW, targetH, cx, cy, resolved.specular, sceneLight]
+      buildJellyScene(
+        targetW,
+        targetH,
+        cx,
+        cy,
+        resolved.specular ? sceneLight : null,
+        volume
+      ),
+    [targetW, targetH, cx, cy, resolved.specular, sceneLight, volume]
   );
 
   const renderer = useRef<LiquidSceneHandle>(null);
@@ -489,7 +497,7 @@ export function JellyButton({
       const waveActive = waveT !== null && waveT < WAVE_MS / 1000;
       const dent = deformPress ? springs.values[2].get() : 0;
       if (dent > 0.004 || waveActive) {
-        deform = { p, dent, waveT: waveActive ? waveT : null, intensity };
+        deform = { p, dent, waveT: waveActive ? waveT : null, squash };
       }
       // The glint is painted light: `reflection={false}` / `light={null}`
       // (both fold into a null `sceneLight`) turn it off with the speculars.
@@ -515,6 +523,7 @@ export function JellyButton({
         cx,
         cy,
         resolved.specular ? sceneLight : null,
+        volume,
         deform,
         glint
       )
@@ -643,7 +652,7 @@ export function JellyButton({
           specularSlots={
             resolved.specular && sceneLight ? 1 + (pressGlint ? 1 : 0) : 0
           }
-          shadow
+          shadow={shadow}
         >
           <span data-fluidkit="jelly-label" style={labelStyle}>
             {children}

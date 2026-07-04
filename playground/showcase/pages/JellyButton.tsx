@@ -23,14 +23,16 @@ const PRESS_COLORS = {
 type PressColorKey = keyof typeof PRESS_COLORS;
 
 /** One pill — hero and variant cells alike — with the flat-material color/text fallbacks. */
-function JellyVariant({ material, intensity, pressColor }: {
+function JellyVariant({ material, squash, intensity, pressColor }: {
   material: LiquidMaterial;
-  intensity: number;
+  squash: number;
+  intensity?: number;
   pressColor?: string;
 }) {
   return (
     <JellyButton
       material={material}
+      squash={squash}
       intensity={intensity}
       pressColor={pressColor}
       color={material === "flat" ? FLAT_COLOR : undefined}
@@ -43,7 +45,8 @@ function JellyVariant({ material, intensity, pressColor }: {
 
 export default function JellyButtonPage() {
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
-  const [intensity, setIntensity] = useState(0.12);
+  const [squash, setSquash] = useState(0.12);
+  const [intensity, setIntensity] = useState(0.7);
   const [pressColorKey, setPressColorKey] = useState<PressColorKey>("auto");
   const pressColor = PRESS_COLORS[pressColorKey];
 
@@ -54,11 +57,12 @@ export default function JellyButtonPage() {
       hero={
         <>
           <Stage wall hint="press and hold">
-            <JellyVariant material={material} intensity={intensity} pressColor={pressColor} />
+            <JellyVariant material={material} squash={squash} intensity={intensity} pressColor={pressColor} />
           </Stage>
           <Controls>
             <Seg label="material" value={material} set={setMaterial} options={MATERIALS} />
-            <Slider label="intensity" value={intensity} set={setIntensity} min={0.02} max={0.3} step={0.01} />
+            <Slider label="squash" value={squash} set={setSquash} min={0.02} max={0.3} step={0.01} />
+            <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
             <Seg
               label="press color"
               value={pressColorKey}
@@ -71,10 +75,10 @@ export default function JellyButtonPage() {
       variants={
         <VariantGrid>
           <VariantCell label="glass · soft" wall>
-            <JellyVariant material="glass" intensity={0.06} />
+            <JellyVariant material="glass" squash={0.06} />
           </VariantCell>
           <VariantCell label="glass · strong" wall>
-            <JellyVariant material="glass" intensity={0.2} />
+            <JellyVariant material="glass" squash={0.2} />
           </VariantCell>
           <VariantCell label="glass · release wave" wall>
             <JellyButton
@@ -85,15 +89,17 @@ export default function JellyButtonPage() {
             </JellyButton>
           </VariantCell>
           <VariantCell label="flat · soft" wall>
-            <JellyVariant material="flat" intensity={0.06} />
+            <JellyVariant material="flat" squash={0.06} />
           </VariantCell>
           <VariantCell label="flat · strong" wall>
-            <JellyVariant material="flat" intensity={0.2} />
+            <JellyVariant material="flat" squash={0.2} />
           </VariantCell>
         </VariantGrid>
       }
       usage={
-        <Snippet code={`<JellyButton material="${material}" intensity={${intensity}}${
+        <Snippet code={`<JellyButton material="${material}"${
+          squash !== 0.12 ? ` squash={${squash}}` : ""
+        }${intensity !== 0.7 ? ` intensity={${intensity}}` : ""}${
           pressColor ? ` pressColor="${pressColor}"` : ""
         } onClick={save}>
   Save changes
