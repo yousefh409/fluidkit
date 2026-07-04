@@ -31,35 +31,45 @@ sidebar under `Lab:` titles. They import engine internals directly, expose raw
 parameter knobs, and are deleted (or parked) before the wave merges. Goal:
 Yousef approves the motion of the three novel visuals in 2–4 live rounds.
 
-- [ ] **Switch lab** (`playground/showcase/pages/labs/SwitchLab.tsx`): two-well
+- [x] **Switch lab** (`playground/showcase/pages/labs/SwitchLab.tsx`): two-well
   track, droplet thumb; knobs for well spacing, bridge neck/tear threshold,
   travel spring, settle wobble; toggle by click. Show 2–3 sizes side by side.
-- [ ] **Progress lab** (`playground/showcase/pages/labs/ProgressLab.tsx`):
+- [x] **Progress lab** (`playground/showcase/pages/labs/ProgressLab.tsx`):
   vessel fill with live meniscus edge; knobs for wobble amplitude/frequency,
   settle time, fill spring; scripted value playback (0→100 at varying rates)
   plus a manual scrub.
-- [ ] **Toast lab** (`playground/showcase/pages/labs/ToastLab.tsx`): condense-in
+- [x] **Toast lab** (`playground/showcase/pages/labs/ToastLab.tsx`): condense-in
   at a screen corner, evaporate-out (blur + lift + fade); knobs for condense
   pace, evaporate pace, blur amount, stack spacing; buttons to fire/dismiss
   several toasts.
-- [ ] Register the three pages in `playground/showcase/registry.ts`; commit as
+- [x] Register the three pages in `playground/showcase/registry.ts`; commit as
   one prototype commit.
-- [ ] **REVIEW GATE:** run the playground, present the three labs, iterate
-  rounds until approved. Record the approved parameter values in this plan file
-  under each phase below before proceeding.
+- [x] **REVIEW GATE:** approved 2026-07-04 after two rounds. Round-1 feedback:
+  no resting bead in the switch's empty well; calmer progress wobble; toast
+  needs the classic controls. **Approved values:**
+  - *Switch*: transit bead 0.32× thumb, travel spring 210/16, satellite
+    0.28× smaller body over 420ms, bead drain ease τ≈90ms, no resting liquid
+    in wells, on-side tint fades with thumb position.
+  - *Progress*: fill spring 90/14, wobble amplitude 0.08, frequency 1.6 Hz,
+    full wobble at velocity ≥0.6/s, envelope decay τ≈260ms, meniscus bead
+    1.15× half-height.
+  - *Toast*: condense spring 260/20 (pace 1×), evaporate pace 1.3×, blur
+    14px, lift 26px, stack gap 10px, geometry grow floor 0.3, content fade
+    in over grow 0.55→1, auto-dismiss default 5s (0 = sticky, hover pauses),
+    close button default on, body click does not dismiss.
 
 ## Phase 2 — Overlay layer + Dialog retrofit
 
 Pure refactor, zero visual change.
 
-- [ ] Write tests first: z-var override respected; portal target creation is
+- [x] Write tests first: z-var override respected; portal target creation is
   SSR-safe; Dialog renders identically (existing Dialog tests keep passing).
-- [ ] Create internal `src/components/overlay.ts`: portal helper + z-index scale
+- [x] Create internal `src/components/overlay.ts`: portal helper + z-index scale
   as CSS custom properties (`--fluidkit-z-dialog|menu|toast|tooltip`) with
   defaults ordered dialog backdrop → dialog → menu → toast → tooltip.
-- [ ] Retrofit `LiquidDialog` onto it. Not a public export.
-- [ ] Verify: full test suite + typecheck green; visual spot-check Dialog page.
-  Commit.
+- [x] Retrofit `LiquidDialog` onto it. Not a public export.
+- [x] Verify: full test suite + typecheck green; visual spot-check Dialog page.
+  Commit. (Done 2026-07-04: 381 tests, computed z unchanged at 1000.)
 
 ## Phase 3 — Toast, then Menu (overlay consumers)
 
