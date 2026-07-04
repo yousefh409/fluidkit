@@ -1,0 +1,325 @@
+/**
+ * A slider whose thumb is a DROPLET riding the meniscus edge of a
+ * part-filled channel: the track is a shallow vessel filled with liquid up
+ * to the value (the Progress read), and the thumb droplet sits fused to
+ * the fill's leading edge, following it on a spring as the value moves.
+ *
+ * A real (visually hidden) `<input type="range">` covers the track:
+ * pointer drag, keyboard steps, min/max/step, forms, and screen readers
+ * are all the browser's native behavior — fluidkit only paints from the
+ * input's value. Controlled (`value` + `onValueChange`) and uncontrolled
+ * (`defaultValue`) both work. Keyboard focus shows the shared focus
+ * meniscus.
+ *
+ * Reduced motion: thumb and fill track the value with no spring lag.
+ */
+
+import type { CSSProperties, InputHTMLAttributes, ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAnimationFrame } from "motion/react";
+import {
+  LiquidRenderer,
+  circlePath,
+  defaultLight,
+  resolveMaterial,
+  roundRectPath,
+  specularPlacement,
+} from "../liquid";
+import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
+import { useMotionSprings } from "../liquid/useMotionSprings";
+import { usePrefersReducedMotion } from "../utils";
+import { resolveIntensity } from "./intensity";
+import type { LiquidIntensity } from "./intensity";
+import { focusMeniscusStyle, useFocusVisible } from "./focus";
+import { visuallyHiddenInput } from "./formControl";
+import type { SurfaceStyleProps } from "./surface";
+
+export interface LiquidSliderProps
+  extends SurfaceStyleProps,
+    Omit<
+      InputHTMLAttributes<HTMLInputElement>,
+      | "size"
+      | "type"
+      | "value"
+      | "defaultValue"
+      | "onChange"
+      | "color"
+      | "min"
+      | "max"
+      | "step"
+      | "width"
+    > {
+  /** Controlled value. */
+  value?: number;
+  /** Uncontrolled initial value. */
+  defaultValue?: number;
+  /** Fires with the next value on every change (drag, keyboard, form). */
+  onValueChange?: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  /** Label above the track, natively associated. */
+  label?: ReactNode;
+  /** Track length in px. Defaults to `240`. */
+  width?: number;
+  /** Thumb diameter in px. Defaults to `20`. */
+  size?: number;
+  /** Fill tint (the liquid in the channel). Defaults to a quiet blue. */
+  fillTint?: string;
+  /**
+   * How loudly the material reads. Defaults to `"present"` — the thumb is
+   * a droplet and carries Droplets' specular brightness (documented
+   * divergence from the pack's `"whisper"`).
+   */
+  intensity?: LiquidIntensity;
+}
+
+/* Follow spring: responsive but liquid (drag must not feel laggy). */
+const FOLLOW_SPRING = { stiffness: 400, damping: 30 };
+const SETTLE_MS = 700;
+const DEFAULT_FILL_TINT = "rgba(96, 156, 220, 0.45)";
+
+interface Scene {
+  path: string;
+  speculars: SpecularSpot[];
+}
+
+export function LiquidSlider({
+  value,
+  defaultValue,
+  onValueChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  label,
+  width = 240,
+  size = 20,
+  fillTint = DEFAULT_FILL_TINT,
+  material = "glass",
+  tint,
+  color,
+  intensity = "present",
+  light,
+  reflection = true,
+  refraction: _refraction, // reserved: edge lensing is not wired on sliders yet
+  shadow = true,
+  disabled,
+  className,
+  style,
+  ...inputRest
+}: LiquidSliderProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const animating = !prefersReducedMotion;
+
+  const isControlled = value !== undefined;
+  const [internal, setInternal] = useState(defaultValue ?? min);
+  const current = isControlled ? value : internal;
+  const fraction = max > min ? (current - min) / (max - min) : 0;
+
+  const focus = useFocusVisible();
+
+  /* ------------------------------ geometry ------------------------------ */
+
+  const thumbR = size / 2;
+  const trackH = Math.max(8, size * 0.5);
+  const bleed = Math.ceil(size * 0.8);
+  const W = width + bleed * 2;
+  const H = Math.max(trackH, size) + bleed * 2;
+  const cy = H / 2;
+  // The thumb center travels the inner channel, seat to seat.
+  const travelL = bleed + thumbR;
+  const travelR = bleed + width - thumbR;
+
+  const sceneLight = useMemo<Vec | null>(() => {
+    if (!reflection || light === null) return null;
+    return light
+      ? { x: light.x + bleed, y: light.y + bleed }
+      : defaultLight(W, H);
+  }, [reflection, light, bleed, W, H]);
+  const volume = resolveIntensity(intensity);
+  const resolved = useMemo(
+    () => resolveMaterial(material, { tint, color }),
+    [material, tint, color]
+  );
+  const fillMaterial = useMemo(
+    () => resolveMaterial(material, { tint: fillTint, color }),
+    [material, fillTint, color]
+  );
+  const trackMaterial = useMemo(
+    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.16)", color }),
+    [material, color]
+  );
+
+  /* ------------------------------- motion -------------------------------- */
+
+  const targetX = travelL + fraction * (travelR - travelL);
+  const x = useMotionSprings(1, () => targetX, FOLLOW_SPRING);
+  const [settling, setSettling] = useState(false);
+  const settlingRef = useRef(false);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const prevX = useRef(targetX);
+  useEffect(() => {
+    if (prevX.current !== targetX) {
+      if (animating) {
+        x.setTargets([targetX]);
+        settlingRef.current = true;
+        setSettling(true);
+        if (settleTimer.current) clearTimeout(settleTimer.current);
+        settleTimer.current = setTimeout(() => {
+          settlingRef.current = false;
+          setSettling(false);
+        }, SETTLE_MS);
+      } else {
+        x.snapTo([targetX]);
+      }
+    }
+    prevX.current = targetX;
+    return () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetX, animating]);
+
+  useEffect(() => {
+    if (!animating) {
+      settlingRef.current = false;
+      setSettling(false);
+    }
+  }, [animating]);
+
+  /** Thumb droplet fused to the fill's leading edge. */
+  const buildThumbScene = (tx: number): Scene => {
+    const thumb = { x: tx, y: cy, r: thumbR };
+    return {
+      path: circlePath(thumb, thumb.r),
+      speculars:
+        resolved.specular && sceneLight
+          ? [specularPlacement(thumb, sceneLight, volume)]
+          : [],
+    };
+  };
+
+  /** The liquid in the channel, up to the thumb. */
+  const buildFillScene = (tx: number): Scene => {
+    const fillW = Math.max(tx - bleed, trackH);
+    if (tx <= travelL + 0.5) return { path: "", speculars: [] };
+    return {
+      path: roundRectPath(
+        { x: bleed + fillW / 2, y: cy },
+        fillW,
+        trackH,
+        trackH / 2
+      ),
+      speculars: [],
+    };
+  };
+
+  const staticThumb = useMemo(
+    () => buildThumbScene(targetX),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [targetX, thumbR, cy, resolved.specular, sceneLight, volume]
+  );
+  const staticFill = useMemo(
+    () => buildFillScene(targetX),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [targetX, trackH, bleed, travelL, cy]
+  );
+
+  const thumbRenderer = useRef<LiquidSceneHandle>(null);
+  const fillRenderer = useRef<LiquidSceneHandle>(null);
+
+  useEffect(() => {
+    if (!(animating && settlingRef.current)) {
+      thumbRenderer.current?.setScene(staticThumb);
+      fillRenderer.current?.setScene(staticFill);
+    }
+  }, [animating, settling, staticThumb, staticFill]);
+
+  useAnimationFrame(() => {
+    if (!animating || !settling) return;
+    const tx = x.values[0].get();
+    thumbRenderer.current?.setScene(buildThumbScene(tx));
+    fillRenderer.current?.setScene(buildFillScene(tx));
+  });
+
+  /* ------------------------------- render -------------------------------- */
+
+  const trackPath = roundRectPath(
+    { x: bleed + width / 2, y: cy },
+    width,
+    trackH,
+    trackH / 2
+  );
+
+  const rootStyle: CSSProperties = {
+    display: "inline-grid",
+    gap: 6,
+    cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? 0.55 : 1,
+    ...style,
+  };
+
+  return (
+    <label
+      data-fluidkit="liquid-slider"
+      data-value={current}
+      data-animating={animating && settling}
+      className={className}
+      onPointerDown={focus.onPointerDown}
+      style={rootStyle}
+    >
+      {label != null && <span>{label}</span>}
+      <span
+        style={{
+          position: "relative",
+          width,
+          height: Math.max(trackH, size),
+          flex: "none",
+        }}
+      >
+        <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
+          <LiquidRenderer path={trackPath} material={trackMaterial} shadow={shadow} />
+        </span>
+        <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
+          <LiquidRenderer ref={fillRenderer} path={staticFill.path} material={fillMaterial} />
+        </span>
+        <span aria-hidden style={{ position: "absolute", inset: -bleed }}>
+          <LiquidRenderer
+            ref={thumbRenderer}
+            path={staticThumb.path}
+            material={resolved}
+            speculars={staticThumb.speculars}
+            specularSlots={resolved.specular && sceneLight ? 1 : 0}
+            shadow={shadow}
+          />
+        </span>
+        {focus.focusVisible && (
+          <span
+            aria-hidden
+            data-fluidkit="liquid-slider-focus"
+            style={focusMeniscusStyle(Math.max(trackH, size) / 2)}
+          />
+        )}
+        <input
+          type="range"
+          style={visuallyHiddenInput}
+          disabled={disabled}
+          min={min}
+          max={max}
+          step={step}
+          value={isControlled ? value : undefined}
+          defaultValue={isControlled ? undefined : defaultValue ?? min}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            if (!isControlled) setInternal(next);
+            onValueChange?.(next);
+          }}
+          onFocus={focus.onFocus}
+          onBlur={focus.onBlur}
+          {...inputRest}
+        />
+      </span>
+    </label>
+  );
+}

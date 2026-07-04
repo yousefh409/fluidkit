@@ -54,6 +54,8 @@ export { LiquidSwitch } from "./LiquidSwitch";
 export type { LiquidSwitchProps } from "./LiquidSwitch";
 export { LiquidCheckbox } from "./LiquidCheckbox";
 export type { LiquidCheckboxProps } from "./LiquidCheckbox";
+export { LiquidSlider } from "./LiquidSlider";
+export type { LiquidSliderProps } from "./LiquidSlider";
 export { LiquidMenu } from "./LiquidMenu";
 export type {
   LiquidMenuProps,
