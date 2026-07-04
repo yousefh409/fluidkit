@@ -17,6 +17,11 @@ export default function ThinkingPage() {
   const [speed, setSpeed] = useState(1);
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
   const [reflection, setReflection] = useState(true);
+  const [refraction, setRefraction] = useState(false);
+  const [intensity, setIntensity] = useState(0.7);
+
+  const usage = `{isWorking && <Thinking variant="${variant}" label="Generating"${refraction ? " refraction" : ""}${intensity !== 0.7 ? ` intensity={${intensity}}` : ""} />}`;
+
   return (
     <PageLayout
       title="Thinking"
@@ -30,6 +35,8 @@ export default function ThinkingPage() {
               speed={speed}
               material={material}
               reflection={reflection}
+              refraction={refraction}
+              intensity={intensity}
               color={material === "flat" ? FLAT_COLOR : undefined}
             />
           </Stage>
@@ -37,6 +44,8 @@ export default function ThinkingPage() {
             <Seg label="variant" value={variant} set={setVariant} options={VARIANTS} />
             <Seg label="material" value={material} set={setMaterial} options={MATERIALS} />
             <Toggle label="reflection" value={reflection} set={setReflection} />
+            <Toggle label="refraction" value={refraction} set={setRefraction} />
+            <Slider label="intensity" value={intensity} set={setIntensity} min={0} max={1} step={0.05} />
             <Slider label="size" value={size} set={setSize} min={10} max={32} />
             <Slider label="speed" value={speed} set={setSpeed} min={0.3} max={3} step={0.1} />
           </Controls>
@@ -55,7 +64,7 @@ export default function ThinkingPage() {
           </VariantCell>
         </VariantGrid>
       }
-      usage={<Snippet code={`{isWorking && <Thinking variant="${variant}" label="Generating" />}`} />}
+      usage={<Snippet code={usage} />}
     />
   );
 }
