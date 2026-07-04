@@ -38,46 +38,26 @@ import {
 } from "../liquid";
 import type {
   LiquidBody,
-  LiquidMaterial,
   LiquidSceneHandle,
   SpecularSpot,
   Vec,
 } from "../liquid";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
-import type { LiquidIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
+import type { SurfaceStyleProps } from "./surface";
 
 export type VoiceBallMode = "idle" | "listening" | "speaking";
 
-export interface VoiceBallProps extends HTMLAttributes<HTMLDivElement> {
+export interface VoiceBallProps
+  extends SurfaceStyleProps,
+    HTMLAttributes<HTMLDivElement> {
   /** Live audio level, 0–1. The ball smooths it internally. Default `0`. */
   level?: number;
   /** What the assistant is doing. Defaults to `"idle"`. */
   mode?: VoiceBallMode;
   /** Ball diameter at rest, px. Defaults to `96`. */
   size?: number;
-  material?: LiquidMaterial;
-  /** Glass tint (any CSS color, normally translucent). */
-  tint?: string;
-  color?: string;
-  /**
-   * How loudly the material reads: 0–1, or the presets `"whisper"`
-   * (0.35) / `"present"` (0.7). Defaults to `"whisper"`.
-   */
-  intensity?: LiquidIntensity;
-  /** Scene light in ball coordinates; null disables speculars. */
-  light?: Vec | null;
-  /** Paint specular reflections on glass. Defaults to `true`. */
-  reflection?: boolean;
-  /**
-   * Edge lensing on glass via an SVG displacement filter inside
-   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
-   * blur elsewhere). Defaults to `false`.
-   */
-  refraction?: boolean;
-  /** Drop shadow under the ball. Defaults to `true`. */
-  shadow?: boolean;
 }
 
 /** Edge undulation amplitude at rest. */

@@ -35,7 +35,6 @@ import {
   useRefraction,
 } from "../liquid";
 import type {
-  LiquidMaterial,
   LiquidSceneHandle,
   SpecularSpot,
   Vec,
@@ -43,40 +42,22 @@ import type {
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
-import type { LiquidIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
+import type { SurfaceStyleProps } from "./surface";
 
 export type LiquidPanelSide = "top" | "bottom" | "left" | "right";
 
-export interface LiquidPanelProps extends HTMLAttributes<HTMLDivElement> {
+export interface LiquidPanelProps
+  extends SurfaceStyleProps,
+    HTMLAttributes<HTMLDivElement> {
   /** Controlled state: true = poured in, false = drained out. */
   open: boolean;
   /** Edge the liquid pours from. Defaults to `"top"`. */
   side?: LiquidPanelSide;
-  material?: LiquidMaterial;
-  tint?: string;
-  color?: string;
-  /**
-   * How loudly the material reads: 0–1, or the presets `"whisper"`
-   * (0.35) / `"present"` (0.7). Defaults to `"whisper"`.
-   */
-  intensity?: LiquidIntensity;
   /** Corner radius in px. Defaults to `20`. */
   radius?: number;
   /** Content padding in px. Defaults to `20`. */
   padding?: number;
-  /** Scene light in panel coordinates; null disables speculars. */
-  light?: Vec | null;
-  /** Paint specular reflections on glass. Defaults to `true`. */
-  reflection?: boolean;
-  /**
-   * Edge lensing on glass via an SVG displacement filter inside
-   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
-   * blur elsewhere). Defaults to `false`.
-   */
-  refraction?: boolean;
-  /** Drop shadow under the surface. Defaults to `true`. */
-  shadow?: boolean;
 }
 
 const POUR_SPRING = { stiffness: 160, damping: 24 };

@@ -22,36 +22,16 @@ import {
   roundRectPath,
   useRefraction,
 } from "../liquid";
-import type { LiquidMaterial, SpecularSpot, Vec } from "../liquid";
+import type { SpecularSpot, Vec } from "../liquid";
 import { resolveIntensity } from "./intensity";
-import type { LiquidIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
+import type { SurfaceStyleProps } from "./surface";
 
-export interface MeniscusDividerProps extends HTMLAttributes<HTMLDivElement> {
-  material?: LiquidMaterial;
-  /** Glass tint override. */
-  tint?: string;
-  /** Flat fill override. */
-  color?: string;
+export interface MeniscusDividerProps
+  extends SurfaceStyleProps,
+    HTMLAttributes<HTMLDivElement> {
   /** Bead height in px. Defaults to `4`. */
   thickness?: number;
-  /**
-   * How loudly the glint reads: 0–1, or the presets `"whisper"` (0.35) /
-   * `"present"` (0.7). Defaults to `"whisper"`.
-   */
-  intensity?: LiquidIntensity;
-  /** Scene light in divider coordinates; null disables the glint. */
-  light?: Vec | null;
-  /** Paint the glint on glass. Defaults to `true`. */
-  reflection?: boolean;
-  /**
-   * Edge lensing on glass via an SVG displacement filter inside
-   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
-   * blur elsewhere). Defaults to `false`.
-   */
-  refraction?: boolean;
-  /** Drop shadow lifting the bead off the page. Defaults to `true`. */
-  shadow?: boolean;
 }
 
 function buildBeadScene(

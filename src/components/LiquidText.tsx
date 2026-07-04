@@ -35,11 +35,16 @@ import { supportsBackdropFilter } from "../utils/featureDetect";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { injectStyleOnce } from "../utils/injectStyleOnce";
 import { resolveIntensity } from "./intensity";
-import type { LiquidIntensity } from "./intensity";
+import type { SurfaceStyleProps } from "./surface";
 
 export type LiquidTextMaterial = "glass" | "flat";
 
-export interface LiquidTextProps extends HTMLAttributes<HTMLSpanElement> {
+export interface LiquidTextProps
+  extends Omit<
+      SurfaceStyleProps,
+      "light" | "reflection" | "refraction" | "shadow"
+    >,
+    HTMLAttributes<HTMLSpanElement> {
   /**
    * `"glass"` (default): the glyphs are translucent glass over the
    * backdrop. `"flat"`: solid-color glyphs. Both get the sheen sweep.
@@ -47,15 +52,8 @@ export interface LiquidTextProps extends HTMLAttributes<HTMLSpanElement> {
   material?: LiquidTextMaterial;
   /** Solid color of the glyphs (`material="flat"`). Defaults to `#23242c`. */
   color?: string;
-  /** Glass tint (any CSS color, normally translucent white). */
-  tint?: string;
   /** Sheen color. Defaults to white. */
   sheenColor?: string;
-  /**
-   * How bright the sheen reads: 0–1, or the presets `"whisper"` (0.35) /
-   * `"present"` (0.7). Defaults to `"whisper"`.
-   */
-  intensity?: LiquidIntensity;
   /** Sweep speed multiplier — 1 is one pass every ~7s. Defaults to `1`. */
   speed?: number;
   /**

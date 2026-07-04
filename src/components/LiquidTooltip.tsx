@@ -42,7 +42,6 @@ import {
 } from "../liquid";
 import type {
   LiquidBody,
-  LiquidMaterial,
   LiquidSceneHandle,
   SpecularSpot,
   Vec,
@@ -50,37 +49,18 @@ import type {
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
-import type { LiquidIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
+import type { SurfaceStyleProps } from "./surface";
 
 export type LiquidTooltipPlacement = "top" | "bottom" | "left" | "right";
 
 export interface LiquidTooltipProps
-  extends Omit<HTMLAttributes<HTMLSpanElement>, "content"> {
+  extends SurfaceStyleProps,
+    Omit<HTMLAttributes<HTMLSpanElement>, "content"> {
   /** Tooltip label. */
   content: ReactNode;
   /** Which side of the trigger the droplet condenses on. Default `"top"`. */
   placement?: LiquidTooltipPlacement;
-  material?: LiquidMaterial;
-  tint?: string;
-  color?: string;
-  /**
-   * How loudly the material reads: 0–1, or the presets `"whisper"`
-   * (0.35) / `"present"` (0.7). Defaults to `"whisper"`.
-   */
-  intensity?: LiquidIntensity;
-  /** Scene light in label coordinates; null disables speculars. */
-  light?: Vec | null;
-  /** Paint specular reflections on glass. Defaults to `true`. */
-  reflection?: boolean;
-  /**
-   * Edge lensing on glass via an SVG displacement filter inside
-   * `backdrop-filter` (Chromium-only; silently degrades to plain glass
-   * blur elsewhere). Defaults to `false`.
-   */
-  refraction?: boolean;
-  /** Drop shadow under the droplet. Defaults to `true`. */
-  shadow?: boolean;
   /** Gap between trigger and droplet in px. Defaults to `6`. */
   gap?: number;
   /** Hover delay before the droplet condenses, ms. Defaults to `100`. */

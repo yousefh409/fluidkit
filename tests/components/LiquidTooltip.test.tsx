@@ -29,8 +29,9 @@ async function loadLiquidTooltip({
 
 const LABEL_SIZE = { width: 80, height: 24 };
 
-/** The droplet only mounts its engine subtree while visible — focus shows it
- * without delay, so tests use focus rather than hover+timers. */
+/** The droplet's engine subtree mounts once the label is measured, not only
+ * while visible (visibility is CSS-only) — focus shows it without delay, so
+ * tests use focus rather than hover+timers. */
 function showTooltip(getByText: (text: string) => HTMLElement) {
   fireEvent.focus(getByText("trigger"));
 }
@@ -112,8 +113,8 @@ describe("LiquidTooltip refraction", () => {
   });
 
   // Surface style pack conformance smoke: `tint` reaches the glass fill.
-  // The droplet's fill only exists while visible, so focus the trigger
-  // before asserting.
+  // The fill mounts once the label is measured (visibility is CSS-only);
+  // focus the trigger anyway so the droplet is in its shown state.
   it("applies `tint` to the glass fill once visible", async () => {
     const LiquidTooltip = await loadLiquidTooltip({
       supportsBackdropFilter: true,
