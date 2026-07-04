@@ -65,6 +65,14 @@ function App() {
 | [`MeshGradient`](docs/primitives/mesh-gradient.md) | Ambient CSS backdrop: large blurred radial-gradient blobs drift slowly behind your content | Static blobs at their home position |
 | [`Silk`](docs/primitives/silk.md) | Ambient CSS backdrop: full-height diagonal gradient sheets flowing like slow fabric | Static sheets at their home position |
 | [`GlassPanes`](docs/primitives/glass-panes.md) | Glass-native backdrop: edge-to-edge frosted panes sliding on a shared diagonal, each at its own blur depth | Layered frosted fills |
+| [`LiquidSwitch`](docs/primitives/liquid-switch.md) | Toggle: the thumb droplet tears off one well through a real bridge and merges into the other; real hidden checkbox underneath | Thumb snaps; the on-tint still flips |
+| [`LiquidCheckbox`](docs/primitives/liquid-checkbox.md) | The check is liquid: a droplet lands and fills the well; `indeterminate` is a half-filled meniscus | Fill level snaps |
+| [`LiquidSlider`](docs/primitives/liquid-slider.md) | Droplet thumb riding the meniscus edge of a part-filled channel; real hidden range input underneath | Thumb tracks the value, no spring lag |
+| [`LiquidField`](docs/primitives/liquid-field.md) | Text field on a glass surface: the input stays real and crisp, focus swells the surface + shows the focus meniscus | Swell dropped; focus ring stays |
+| [`LiquidProgress`](docs/primitives/liquid-progress.md) | Determinate progress as a vessel filling; the meniscus wobbles only while the value moves | Fill width tracks the value |
+| [`LiquidToast`](docs/primitives/liquid-toast.md) | `toast()` notifications that condense at the screen corner and evaporate on dismiss | Opacity-only in/out |
+| [`LiquidMenu`](docs/primitives/liquid-menu.md) | Dropdown that pours from its trigger; full ARIA menu keyboard pattern | Opacity fade over poured geometry |
+| [`LiquidBadge`](docs/primitives/liquid-badge.md) | Notification count that absorbs increments through a metaball bridge; the number only cross-fades | Count cross-fades |
 | [`LiquidMetal`](docs/primitives/liquid-metal.md) | Optional GPU tier: a real WebGL liquid-metal shader (`fluidkit/liquid-metal`) | Static metallic-gradient fallback |
 
 ### Materials
