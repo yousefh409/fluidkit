@@ -394,6 +394,22 @@ export function LiquidMenu({
         if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           e.preventDefault();
           openMenu(e.key === "ArrowDown" ? "first" : "last");
+          return;
+        }
+        // Custom focusable triggers (role="button" on a span, etc.) have no
+        // native Enter/Space activation — provide it. Native buttons/links
+        // already synthesize a click, which the onClick handler covers.
+        if (e.key === "Enter" || e.key === " ") {
+          const el = e.currentTarget as HTMLElement;
+          const nativeActivation =
+            el instanceof HTMLButtonElement ||
+            el instanceof HTMLAnchorElement ||
+            el instanceof HTMLInputElement;
+          if (!nativeActivation) {
+            e.preventDefault();
+            if (open) closeMenu(false);
+            else openMenu("first");
+          }
         }
       },
     }

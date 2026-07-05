@@ -193,6 +193,15 @@ describe("LiquidToast", () => {
     expect(screen.queryByText("bbb")).toBeNull();
   });
 
+  it("pre-mount dismiss purges every queued payload with that id", async () => {
+    const { LiquidToastProvider, toast } = await loadToast(true);
+    toast("Connecting\u2026", { id: "conn" });
+    toast("Still connecting\u2026", { id: "conn" });
+    toast.dismiss("conn");
+    render(<LiquidToastProvider>app</LiquidToastProvider>);
+    expect(screen.queryByText(/connecting/i)).toBeNull();
+  });
+
   it("reduced motion: content is visible immediately, no animation loop", async () => {
     const { LiquidToastProvider, toast } = await loadToast(true);
     render(<LiquidToastProvider>app</LiquidToastProvider>);

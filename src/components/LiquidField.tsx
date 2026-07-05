@@ -127,6 +127,9 @@ export function LiquidField({
   const fieldTextStyle: CSSProperties = {
     position: "relative",
     display: "block",
+    // Border-box: with content-box, width:100% + padding overflows the
+    // measured wrapper and the text bleeds past the liquid surface.
+    boxSizing: "border-box",
     width: "100%",
     border: "none",
     outline: "none",

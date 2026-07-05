@@ -163,6 +163,24 @@ describe("LiquidMenu", () => {
     expect(document.activeElement).toBe(screen.getAllByRole("menuitem")[0]);
   });
 
+  it("Enter opens the menu on a custom (non-button) trigger", async () => {
+    const { LiquidMenu } = await loadMenu(true);
+    render(
+      <LiquidMenu
+        trigger={
+          <span role="button" tabIndex={0}>
+            Options
+          </span>
+        }
+        items={ITEMS(() => {})}
+      />
+    );
+    act(() => {
+      fireEvent.keyDown(screen.getByText("Options"), { key: "Enter" });
+    });
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+  });
+
   it("reduced motion renders the static open state, no loop", async () => {
     await renderOpenMenu();
     const surface = document.querySelector('[data-fluidkit="liquid-menu"]');

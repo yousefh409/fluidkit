@@ -108,15 +108,18 @@ export function LiquidProgress({
       : defaultLight(W, H);
   }, [reflection, light, bleed, W, H]);
   const volume = resolveIntensity(intensity);
+  // The fill carries fillTint on BOTH materials (flat ignores `tint`, so
+  // it doubles as the flat color); the track stays neutral so the filled
+  // portion is always distinct from the vessel.
   const fillMaterial = useMemo(
-    () => resolveMaterial(material, { tint: fillTint, color, opacity }),
-    [material, fillTint, color, opacity]
+    () => resolveMaterial(material, { tint: fillTint, color: fillTint, opacity }),
+    [material, fillTint, opacity]
   );
   const trackMaterial = useMemo(
     () =>
       resolveMaterial(material, {
         tint: tint ?? "rgba(120, 128, 150, 0.14)",
-        color,
+        color: color ?? "rgba(120, 128, 150, 0.14)",
       }),
     [material, tint, color]
   );

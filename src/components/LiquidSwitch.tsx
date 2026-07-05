@@ -133,9 +133,15 @@ export function LiquidSwitch({
     () => resolveMaterial(material, { tint, color, opacity }),
     [material, tint, color, opacity]
   );
+  // The track stays neutral on BOTH materials — passing the consumer color
+  // through made the thumb invisible against its own track in flat.
   const trackMaterial = useMemo(
-    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.16)", color }),
-    [material, color]
+    () =>
+      resolveMaterial(material, {
+        tint: "rgba(120, 128, 150, 0.16)",
+        color: "rgba(120, 128, 150, 0.16)",
+      }),
+    [material]
   );
 
   /* ------------------------------- motion -------------------------------- */

@@ -98,8 +98,11 @@ toast.dismiss = (id?: string | number): void => {
     // resurrect the toast when the provider flushes.
     if (id === undefined) pending.length = 0;
     else {
-      const i = pending.findIndex((t) => t.id === id);
-      if (i !== -1) pending.splice(i, 1);
+      // Every queued payload with the id — the same id can be queued
+      // multiple times pre-mount (dedupe only happens in the provider).
+      for (let i = pending.length - 1; i >= 0; i--) {
+        if (pending[i].id === id) pending.splice(i, 1);
+      }
     }
     return;
   }

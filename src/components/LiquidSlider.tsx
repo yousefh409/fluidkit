@@ -181,17 +181,27 @@ export function LiquidSlider({
     () => resolveMaterial(material, { tint, color, opacity }),
     [material, tint, color, opacity]
   );
+  // The channel liquid carries fillTint on BOTH materials (flat ignores
+  // `tint`); the track stays neutral so the fill always reads against it.
   const fillMaterial = useMemo(
-    () => resolveMaterial(material, { tint: fillTint, color }),
-    [material, fillTint, color]
+    () => resolveMaterial(material, { tint: fillTint, color: fillTint }),
+    [material, fillTint]
   );
   const vividMaterial = useMemo(
-    () => resolveMaterial(material, { tint: saturate(fillTint), color }),
-    [material, fillTint, color]
+    () =>
+      resolveMaterial(material, {
+        tint: saturate(fillTint),
+        color: saturate(fillTint),
+      }),
+    [material, fillTint]
   );
   const trackMaterial = useMemo(
-    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.16)", color }),
-    [material, color]
+    () =>
+      resolveMaterial(material, {
+        tint: "rgba(120, 128, 150, 0.16)",
+        color: "rgba(120, 128, 150, 0.16)",
+      }),
+    [material]
   );
 
   /* ------------------------------- motion -------------------------------- */

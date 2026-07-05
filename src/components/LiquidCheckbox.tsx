@@ -114,9 +114,15 @@ export function LiquidCheckbox({
     () => resolveMaterial(material, { tint, color, opacity }),
     [material, tint, color, opacity]
   );
+  // The well stays neutral on BOTH materials — passing the consumer color
+  // through made the checked pool invisible against its own well in flat.
   const wellMaterial = useMemo(
-    () => resolveMaterial(material, { tint: "rgba(120, 128, 150, 0.22)", color }),
-    [material, color]
+    () =>
+      resolveMaterial(material, {
+        tint: "rgba(120, 128, 150, 0.22)",
+        color: "rgba(120, 128, 150, 0.22)",
+      }),
+    [material]
   );
 
   /* ------------------------------- motion -------------------------------- */
