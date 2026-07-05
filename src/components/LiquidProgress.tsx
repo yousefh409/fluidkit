@@ -25,6 +25,7 @@ import {
 } from "../liquid";
 import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
@@ -68,24 +69,30 @@ interface Scene {
   speculars: SpecularSpot[];
 }
 
-export function LiquidProgress({
-  value,
-  max = 1,
-  width = 240,
-  height = 12,
-  fillTint = DEFAULT_FILL_TINT,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "present",
-  light,
-  reflection = true,
-  shadow = true,
-  className,
-  style,
-  ...rest
-}: LiquidProgressProps) {
+export function LiquidProgress(props: LiquidProgressProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. The vessel liquid is a STATE color: it
+  // takes the raw brand accent (overlay.stateTint), not a diluted glass
+  // tint — the fill level is the brand mark carrying the progress.
+  const themed = useThemedSurface("LiquidProgress");
+  const {
+    value,
+    max = 1,
+    width = 240,
+    height = 12,
+    fillTint = themed.stateTint ?? DEFAULT_FILL_TINT,
+    material = themed.material ?? "glass",
+    tint,
+    opacity,
+    color,
+    intensity = themed.intensity ?? "present",
+    light,
+    reflection = true,
+    shadow = true,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLDivElement>();
   const animating = !prefersReducedMotion && inView;

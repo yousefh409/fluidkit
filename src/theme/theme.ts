@@ -16,8 +16,9 @@ export type ThemeMaterial = "glass" | "flat";
  * that only sets colors.
  *
  * `background`, `mutedText`, and `fontFamily` are accepted but inert in 0.5:
- * no current component consumes them. They are reserved for the controls
- * wave (fields, menus) so a theme written today keeps working.
+ * no current component consumes them — the controls wave included (no
+ * control exposes a placeholder/secondary-text color prop to feed them).
+ * They stay reserved so a theme written today keeps working.
  */
 export interface FluidTheme {
   /** Brand accent — tints glass surfaces (per-component alpha). */

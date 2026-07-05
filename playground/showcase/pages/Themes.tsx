@@ -3,6 +3,9 @@ import {
   FluidThemeProvider,
   LiquidButton,
   LiquidCard,
+  LiquidProgress,
+  LiquidSlider,
+  LiquidSwitch,
   LiquidTabs,
   MeniscusDivider,
   Thinking,
@@ -56,6 +59,13 @@ function BrandScene({ brand }: { brand: BrandName }) {
         </div>
       </LiquidCard>
       <MeniscusDivider />
+      {/* Controls row: state fills (switch/slider/progress) derive from the
+          raw accent — the brand mark against each control's neutral track. */}
+      <div style={{ display: "flex", gap: 22, alignItems: "center" }}>
+        <LiquidSwitch defaultChecked aria-label="Notifications" />
+        <div style={{ width: 150 }}><LiquidSlider defaultValue={62} aria-label="Volume" /></div>
+        <div style={{ width: 130 }}><LiquidProgress value={0.7} max={1} aria-label="Uploading" /></div>
+      </div>
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
         <LiquidButton>Continue</LiquidButton>
         <Thinking />

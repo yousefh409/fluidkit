@@ -32,6 +32,7 @@ import {
 import type { LiquidBody, LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { CONNECT_STRETCH, SNAP_STRETCH } from "../liquid/tension";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
@@ -80,26 +81,32 @@ interface Scene {
   speculars: SpecularSpot[];
 }
 
-export function LiquidSwitch({
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  label,
-  size = 24,
-  checkedTint = DEFAULT_CHECKED_TINT,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "present",
-  light,
-  reflection = true,
-  shadow = true,
-  disabled,
-  className,
-  style,
-  ...inputRest
-}: LiquidSwitchProps) {
+export function LiquidSwitch(props: LiquidSwitchProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. The checked track fill is a STATE color:
+  // it takes the raw brand accent (overlay.stateTint), not a diluted glass
+  // tint — on is the brand mark.
+  const themed = useThemedSurface("LiquidSwitch");
+  const {
+    checked,
+    defaultChecked,
+    onCheckedChange,
+    label,
+    size = 24,
+    checkedTint = themed.stateTint ?? DEFAULT_CHECKED_TINT,
+    material = themed.material ?? "glass",
+    tint,
+    opacity,
+    color,
+    intensity = themed.intensity ?? "present",
+    light,
+    reflection = true,
+    shadow = true,
+    disabled,
+    className,
+    style,
+    ...inputRest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const animating = !prefersReducedMotion;
 

@@ -38,6 +38,7 @@ import {
 } from "../liquid";
 import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { overlayRoot, overlayZ } from "./overlay";
@@ -110,22 +111,26 @@ function buildMenuScene(
   return { path, speculars };
 }
 
-export function LiquidMenu({
-  trigger,
-  items,
-  side = "bottom",
-  align = "start",
-  gap = 6,
-  radius = 14,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "whisper",
-  light,
-  reflection = true,
-  shadow = true,
-}: LiquidMenuProps) {
+export function LiquidMenu(props: LiquidMenuProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("LiquidMenu");
+  const {
+    trigger,
+    items,
+    side = "bottom",
+    align = "start",
+    gap = 6,
+    radius = themed.radius ?? 14,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = true,
+    shadow = true,
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const animating = !prefersReducedMotion;
 

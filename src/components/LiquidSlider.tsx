@@ -33,6 +33,7 @@ import {
 } from "../liquid";
 import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { colorWithAlpha, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
@@ -95,30 +96,36 @@ interface Scene {
   speculars: SpecularSpot[];
 }
 
-export function LiquidSlider({
-  value,
-  defaultValue,
-  onValueChange,
-  min = 0,
-  max = 100,
-  step = 1,
-  label,
-  width = 240,
-  size = 20,
-  fillTint = DEFAULT_FILL_TINT,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "present",
-  light,
-  reflection = true,
-  shadow = true,
-  disabled,
-  className,
-  style,
-  ...inputRest
-}: LiquidSliderProps) {
+export function LiquidSlider(props: LiquidSliderProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. The channel liquid is a STATE color: it
+  // takes the raw brand accent (overlay.stateTint), not a diluted glass
+  // tint — the fill level is the brand mark carrying the value.
+  const themed = useThemedSurface("LiquidSlider");
+  const {
+    value,
+    defaultValue,
+    onValueChange,
+    min = 0,
+    max = 100,
+    step = 1,
+    label,
+    width = 240,
+    size = 20,
+    fillTint = themed.stateTint ?? DEFAULT_FILL_TINT,
+    material = themed.material ?? "glass",
+    tint,
+    opacity,
+    color,
+    intensity = themed.intensity ?? "present",
+    light,
+    reflection = true,
+    shadow = true,
+    disabled,
+    className,
+    style,
+    ...inputRest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const animating = !prefersReducedMotion;
 

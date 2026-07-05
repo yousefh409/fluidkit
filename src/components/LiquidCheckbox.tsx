@@ -25,6 +25,7 @@ import {
 } from "../liquid";
 import type { LiquidSceneHandle, SpecularSpot, Vec } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
@@ -66,26 +67,33 @@ interface Scene {
   speculars: SpecularSpot[];
 }
 
-export function LiquidCheckbox({
-  checked,
-  defaultChecked,
-  onCheckedChange,
-  indeterminate = false,
-  label,
-  size = 20,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "present",
-  light,
-  reflection = true,
-  shadow = true,
-  disabled,
-  className,
-  style,
-  ...inputRest
-}: LiquidCheckboxProps) {
+export function LiquidCheckbox(props: LiquidCheckboxProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. The checked pool rides the shared
+  // `tint`/`color` (there is no dedicated state-fill prop), so the theme's
+  // accent arrives through them — a strong 45% glass share, or the raw
+  // accent as the flat pool fill (see the derivation table).
+  const themed = useThemedSurface("LiquidCheckbox");
+  const {
+    checked,
+    defaultChecked,
+    onCheckedChange,
+    indeterminate = false,
+    label,
+    size = 20,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    intensity = themed.intensity ?? "present",
+    light,
+    reflection = true,
+    shadow = true,
+    disabled,
+    className,
+    style,
+    ...inputRest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const animating = !prefersReducedMotion;
   const state = useCheckedState(checked, defaultChecked, onCheckedChange);

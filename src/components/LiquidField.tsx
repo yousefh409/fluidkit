@@ -28,6 +28,7 @@ import {
   specularPlacement,
 } from "../liquid";
 import type { SpecularSpot, Vec } from "../liquid";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { focusMeniscusStyle, useFocusVisible } from "./focus";
@@ -50,25 +51,29 @@ export interface LiquidFieldProps extends Omit<SurfaceStyleProps, "refraction">,
 
 const SWELL_SCALE = 1.015;
 
-export function LiquidField({
-  label,
-  multiline = false,
-  radius = 12,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "whisper",
-  light,
-  reflection = true,
-  shadow = true,
-  className,
-  style,
-  id: idProp,
-  onFocus,
-  onBlur,
-  ...nativeRest
-}: LiquidFieldProps) {
+export function LiquidField(props: LiquidFieldProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("LiquidField");
+  const {
+    label,
+    multiline = false,
+    radius = themed.radius ?? 12,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = true,
+    shadow = true,
+    className,
+    style,
+    id: idProp,
+    onFocus,
+    onBlur,
+    ...nativeRest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const autoId = useId();
   const id = idProp ?? `fluidkit-field-${autoId}`;
@@ -203,10 +208,12 @@ export function LiquidField({
             <>
               <span
                 aria-hidden
+                data-fluidkit="liquid-field-glow"
                 style={rimGlowStyle(size.w, size.h, radius, volume)}
               />
               <span
                 aria-hidden
+                data-fluidkit="liquid-field-rim"
                 style={rimStyle(size.w, size.h, radius, sceneLight, volume)}
               />
             </>

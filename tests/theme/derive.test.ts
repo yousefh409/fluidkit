@@ -62,8 +62,61 @@ describe("deriveSurfaceOverlay", () => {
     const themed: FluidTheme = { radius: 10 };
     expect(deriveSurfaceOverlay(themed, "LiquidCard").radius).toBe(10);
     expect(deriveSurfaceOverlay(themed, "LiquidDialog").radius).toBe(10);
+    expect(deriveSurfaceOverlay(themed, "LiquidField").radius).toBe(10);
+    expect(deriveSurfaceOverlay(themed, "LiquidMenu").radius).toBe(10);
     expect(deriveSurfaceOverlay(themed, "Ripple").radius).toBeUndefined();
     expect(deriveSurfaceOverlay(themed, "Thinking").radius).toBeUndefined();
+    // Toast/switch/slider/progress/checkbox have no numeric radius prop.
+    expect(deriveSurfaceOverlay(themed, "LiquidToast").radius).toBeUndefined();
+    expect(deriveSurfaceOverlay(themed, "LiquidSwitch").radius).toBeUndefined();
+    expect(deriveSurfaceOverlay(themed, "LiquidSlider").radius).toBeUndefined();
+    expect(deriveSurfaceOverlay(themed, "LiquidProgress").radius).toBeUndefined();
+    expect(deriveSurfaceOverlay(themed, "LiquidCheckbox").radius).toBeUndefined();
+  });
+
+  it("controls' state fills take the RAW accent — no color-mix dilution", () => {
+    for (const key of ["LiquidSwitch", "LiquidSlider", "LiquidProgress"] as const) {
+      const overlay = deriveSurfaceOverlay(brand, key);
+      expect(overlay.stateTint).toBe("#2D6A4F");
+      // State-fill controls derive no container tint/color of their own.
+      expect(overlay.tint).toBeUndefined();
+      expect(overlay.color).toBeUndefined();
+    }
+    // No accent set → no state tint.
+    expect(deriveSurfaceOverlay({ surface: "#FFF" }, "LiquidSwitch").stateTint).toBeUndefined();
+    // Containers never receive a state tint.
+    expect(deriveSurfaceOverlay(brand, "LiquidCard").stateTint).toBeUndefined();
+  });
+
+  it("checkbox: the accent rides the shared tint/color at a strong share (the pool is state)", () => {
+    const overlay = deriveSurfaceOverlay(brand, "LiquidCheckbox");
+    expect(overlay.tint).toBe("color-mix(in srgb, #2D6A4F 45%, transparent)");
+    expect(overlay.color).toBe("#2D6A4F");
+    expect(overlay.stateTint).toBeUndefined();
+  });
+
+  it("field and menu tint quietly from the accent — quieter than a card", () => {
+    const pct = (s: string) => Number(/ (\d+)%,/.exec(s)![1]);
+    const field = deriveSurfaceOverlay(brand, "LiquidField");
+    const menu = deriveSurfaceOverlay(brand, "LiquidMenu");
+    const card = deriveSurfaceOverlay(brand, "LiquidCard");
+    expect(pct(field.tint!)).toBeLessThan(pct(menu.tint!));
+    expect(pct(menu.tint!)).toBeLessThan(pct(card.tint!));
+    // Containers: flat fill from surface.
+    expect(field.color).toBe("#FFFFFF");
+    expect(menu.color).toBe("#FFFFFF");
+  });
+
+  it("toast tints from SURFACE at a near-solid share, and gets the brand ink", () => {
+    const overlay = deriveSurfaceOverlay(brand, "LiquidToast");
+    expect(overlay.tint).toBe("color-mix(in srgb, #FFFFFF 88%, transparent)");
+    expect(overlay.color).toBe("#FFFFFF");
+    expect(overlay.ink).toBe("#14151A");
+    // Accent alone derives NO toast tint — the toast is surface-keyed.
+    expect(deriveSurfaceOverlay({ accent: "#2D6A4F" }, "LiquidToast").tint).toBeUndefined();
+    // No dark boost: the share is a readability floor, not glass legibility.
+    const dark = deriveSurfaceOverlay({ ...brand, mode: "dark" }, "LiquidToast");
+    expect(dark.tint).toBe("color-mix(in srgb, #FFFFFF 88%, transparent)");
   });
 
   it("reserved tokens (background, mutedText, fontFamily) are inert in 0.5", () => {
@@ -79,10 +132,17 @@ describe("deriveSurfaceOverlay", () => {
       "Droplets",
       "LiquidButton",
       "LiquidCard",
+      "LiquidCheckbox",
       "LiquidDialog",
+      "LiquidField",
+      "LiquidMenu",
       "LiquidPanel",
+      "LiquidProgress",
+      "LiquidSlider",
+      "LiquidSwitch",
       "LiquidTabs",
       "LiquidText",
+      "LiquidToast",
       "LiquidTooltip",
       "MeniscusDivider",
       "MorphSurface",

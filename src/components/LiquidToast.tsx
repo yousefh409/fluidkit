@@ -37,7 +37,9 @@ import {
 } from "../liquid";
 import type { LiquidSceneHandle, SpecularSpot } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
+import { readableInk } from "./ink";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import { overlayRoot, overlayZ } from "./overlay";
@@ -160,25 +162,32 @@ const EXIT_MS = 520;
 /** How long the item's loop keeps running after a state flip. */
 const SETTLE_MS = 1100;
 
-export function LiquidToastProvider({
-  position = "bottom-right",
-  duration = 5000,
-  dismissible = true,
-  visibleToasts = 3,
-  gap = 10,
-  offset = 16,
-  minWidth = 200,
-  maxWidth = 340,
-  material = "glass",
-  tint = "rgba(255, 255, 255, 0.82)",
-  opacity,
-  color,
-  intensity = "present",
-  light,
-  reflection = true,
-  shadow = true,
-  children,
-}: LiquidToastProviderProps) {
+export function LiquidToastProvider(props: LiquidToastProviderProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  // The themed tint keeps the toast's near-solid identity: it derives from
+  // the brand SURFACE at 88% (not the accent), so dark-surface brands get
+  // dark, still-readable toasts.
+  const themed = useThemedSurface("LiquidToast");
+  const {
+    position = "bottom-right",
+    duration = 5000,
+    dismissible = true,
+    visibleToasts = 3,
+    gap = 10,
+    offset = 16,
+    minWidth = 200,
+    maxWidth = 340,
+    material = themed.material ?? "glass",
+    tint = themed.tint ?? "rgba(255, 255, 255, 0.82)",
+    opacity,
+    color = themed.color,
+    intensity = themed.intensity ?? "present",
+    light,
+    reflection = true,
+    shadow = true,
+    children,
+  } = props;
   // The canonical list lives in a ref and mutates SYNCHRONOUSLY — the
   // dispatcher is called from outside React (often several times in one
   // tick), so state updaters alone would read stale snapshots under
@@ -254,6 +263,15 @@ export function LiquidToastProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Message ink pairs with what's under the text (the LiquidButton rule).
+  // On flat the fill is the backdrop, so contrast is computed from it; on
+  // glass the themed tint is near-solid brand surface, and theme `text` is
+  // exactly the brand's text-on-surface pairing, so it is the right ink.
+  // No theme → nothing set, the message inherits as before; a message's
+  // own styling always wins (it sits closer to the text).
+  const messageInk =
+    material === "flat" ? (readableInk(color) ?? themed.ink) : themed.ink;
+
   const surface: ItemSurfaceProps = {
     material,
     tint,
@@ -263,6 +281,7 @@ export function LiquidToastProvider({
     lightOverride: light,
     reflection,
     shadow,
+    ink: messageInk,
   };
 
   const top = position.startsWith("top");
@@ -277,7 +296,13 @@ export function LiquidToastProvider({
     pointerEvents: "none",
   };
 
-  const root = overlayRoot();
+  // Portal only after mount: overlayRoot() is null during SSR but real on the
+  // client's hydration pass, and that asymmetry is a hydration mismatch in
+  // SSR frameworks (Next). Toasts are interactive-only, so deferring the
+  // viewport one effect tick changes nothing observable.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const root = mounted ? overlayRoot() : null;
   return (
     <>
       {children}
@@ -334,6 +359,8 @@ interface ItemSurfaceProps {
   lightOverride?: SurfaceStyleProps["light"];
   reflection: boolean;
   shadow: boolean;
+  /** Brand label ink for the toast body (see the provider's pairing). */
+  ink?: string;
 }
 
 function ToastItem({
@@ -574,6 +601,7 @@ function ToastItem({
         </div>
         <div
           ref={overlayRef}
+          data-fluidkit="liquid-toast-content"
           style={{
             position: "relative",
             display: "flex",
@@ -586,6 +614,7 @@ function ToastItem({
             fontWeight: 500,
             lineHeight: 1.4,
             opacity: animating ? 0 : 1,
+            ...(surface.ink !== undefined ? { color: surface.ink } : {}),
           }}
         >
           <span style={{ flex: 1, position: "relative" }}>{record.message}</span>
