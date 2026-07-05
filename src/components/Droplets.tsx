@@ -34,6 +34,7 @@ import type {
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
@@ -126,36 +127,40 @@ function layoutHomes(
   });
 }
 
-export function Droplets({
-  count = DEFAULT_COUNT,
-  size = DEFAULT_SIZE,
-  spread = DEFAULT_SPREAD,
-  bleed = 0,
-  speed = 1,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  light,
-  reflection = true,
-  refraction = false,
-  // Droplets' pre-pack specular opacity was `specularPlacement`'s own
-  // default (0.7) — nobody ever overrode it — which already equals the
-  // "present" preset exactly, so intensity maps straight through (no 0.4x
-  // scaling like LiquidButton/MorphSurface): default "present" reproduces
-  // today's 0.7 pixel-identically.
-  intensity = "present",
-  shadow = true,
-  followPointer = false,
-  interactive = false,
-  onGrab,
-  onTear,
-  onRelease,
-  seed = 0,
-  className,
-  style,
-  ...rest
-}: DropletsProps) {
+export function Droplets(props: DropletsProps) {
+  // Theme overlay: folds in below explicit props, above built-in defaults —
+  // with no provider mounted the overlay is empty and every default holds.
+  const themed = useThemedSurface("Droplets");
+  const {
+    count = DEFAULT_COUNT,
+    size = DEFAULT_SIZE,
+    spread = DEFAULT_SPREAD,
+    bleed = 0,
+    speed = 1,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    light,
+    reflection = true,
+    refraction = false,
+    // Droplets' pre-pack specular opacity was `specularPlacement`'s own
+    // default (0.7) — nobody ever overrode it — which already equals the
+    // "present" preset exactly, so intensity maps straight through (no 0.4x
+    // scaling like LiquidButton/MorphSurface): default "present" reproduces
+    // today's 0.7 pixel-identically.
+    intensity = themed.intensity ?? "present",
+    shadow = true,
+    followPointer = false,
+    interactive = false,
+    onGrab,
+    onTear,
+    onRelease,
+    seed = 0,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLDivElement>();
   const animating = !prefersReducedMotion && inView;

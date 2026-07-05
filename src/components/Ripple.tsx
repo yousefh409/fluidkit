@@ -25,6 +25,7 @@ import { useRipple } from "../hooks";
 import { resolveMaterial } from "../liquid/materials";
 import { INTENSITY_PRESETS, resolveIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 
 // Ripple takes no `light`/`reflection`/`refraction`/`shadow` from the surface
 // style pack: a momentary expanding wave has no resting surface for the scene
@@ -69,19 +70,25 @@ const RIPPLE_BLUR_PX = 5;
  * the meniscus edge that makes it read as liquid, not just a blur region. */
 const GLASS_RIM = "inset 0 0 0 1px rgba(255,255,255,0.45)";
 
-export function Ripple({
-  color,
-  tint,
-  opacity,
-  duration,
-  material = "flat",
-  intensity = "whisper",
-  className,
-  style,
-  children,
-  onPointerDown,
-  ...rest
-}: RippleProps) {
+export function Ripple(props: RippleProps) {
+  // Theme overlay: folds in below explicit props, above built-in defaults —
+  // with no provider mounted the overlay is empty and every default holds.
+  // The material cast narrows safely: themes may only set `ThemeMaterial`
+  // ("glass" | "flat"), never "caustics".
+  const themed = useThemedSurface("Ripple");
+  const {
+    color = themed.color,
+    tint = themed.tint,
+    opacity,
+    duration,
+    material = (themed.material as RippleProps["material"]) ?? "flat",
+    intensity = themed.intensity ?? "whisper",
+    className,
+    style,
+    children,
+    onPointerDown,
+    ...rest
+  } = props;
   const {
     handlers,
     ripples,

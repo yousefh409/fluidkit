@@ -53,7 +53,7 @@ function LiquidVariant({ variant, material, squash, intensity, opacity, pressCol
 }
 
 export default function LiquidButtonPage() {
-  const [variant, setVariant] = useState<LiquidVariantName>("jelly");
+  const [variant, setVariant] = useState<LiquidVariantName>("still");
   const [material, setMaterial] = useState<LiquidMaterial>("glass");
   const [squash, setSquash] = useState(0.12);
   const [intensity, setIntensity] = useState(0.7);

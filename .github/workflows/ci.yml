@@ -19,6 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20, 24]
+        react-major: [18, 19]
     steps:
       - uses: actions/checkout@v5
 
@@ -28,6 +29,13 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # The dev environment pins React 18; the peer range is >=18. This leg
+      # proves the range by re-resolving react/react-dom (+ types) to 19
+      # before running the same suite.
+      - if: matrix.react-major == 19
+        run: npm install --no-save react@19 react-dom@19 @types/react@19 @types/react-dom@19
+
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build

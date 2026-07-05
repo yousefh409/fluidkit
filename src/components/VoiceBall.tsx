@@ -46,6 +46,7 @@ import { useInView, usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 
 export type VoiceBallMode = "idle" | "listening" | "speaking";
 
@@ -205,23 +206,27 @@ function buildBallScene(
   return { path, speculars };
 }
 
-export function VoiceBall({
-  level = 0,
-  mode = "idle",
-  size = 96,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "whisper",
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  className,
-  style,
-  ...rest
-}: VoiceBallProps) {
+export function VoiceBall(props: VoiceBallProps) {
+  // Theme overlay: folds in below explicit props, above built-in defaults —
+  // with no provider mounted the overlay is empty and every default holds.
+  const themed = useThemedSurface("VoiceBall");
+  const {
+    level = 0,
+    mode = "idle",
+    size = 96,
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLDivElement>();
   const animating = !prefersReducedMotion && inView;

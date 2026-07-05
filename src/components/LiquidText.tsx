@@ -36,6 +36,7 @@ import { useInView, usePrefersReducedMotion } from "../utils";
 import { injectStyleOnce } from "../utils/injectStyleOnce";
 import { resolveIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 
 export type LiquidTextMaterial = "glass" | "flat";
 
@@ -131,20 +132,26 @@ function buildGlyphMask(el: HTMLElement, text: string): GlyphMask | null {
   return { uri: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`, w, h };
 }
 
-export function LiquidText({
-  material = "glass",
-  color = "#23242c",
-  tint,
-  opacity,
-  sheenColor = "#ffffff",
-  intensity = "whisper",
-  speed = 1,
-  angle = 115,
-  children,
-  className,
-  style,
-  ...rest
-}: LiquidTextProps) {
+export function LiquidText(props: LiquidTextProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  // The theme's `text` token arrives as `themed.color` (glyph fill).
+  const themed = useThemedSurface("LiquidText");
+  const {
+    // A theme can only set "glass" | "flat" (ThemeMaterial), never "caustics".
+    material = (themed.material as LiquidTextMaterial | undefined) ?? "glass",
+    color = themed.color ?? "#23242c",
+    tint = themed.tint,
+    opacity,
+    sheenColor = "#ffffff",
+    intensity = themed.intensity ?? "whisper",
+    speed = 1,
+    angle = 115,
+    children,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref: inViewRef, inView } = useInView<HTMLSpanElement>();
   const elRef = useRef<HTMLSpanElement | null>(null);

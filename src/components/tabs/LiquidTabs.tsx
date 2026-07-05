@@ -43,6 +43,7 @@ import { resolveColor, usePrefersReducedMotion } from "../../utils";
 import { resolveIntensity } from "../intensity";
 import type { LiquidIntensity } from "../intensity";
 import type { SurfaceStyleProps } from "../surface";
+import { useThemedSurface } from "../../theme";
 import { FLOWS, stretchEdgeConfigs, type FlowName, type TabRect } from "./flows";
 import { mixColor, parseColor, tabCoverage, type RGB } from "./tint";
 import { useTabList } from "./useTabList";
@@ -180,27 +181,32 @@ function indicatorSpeculars(
 /** Specular ellipse pool: `slide` lights at most a body + its tail. */
 const SPECULAR_SLOTS = 2;
 
-export function LiquidTabs({
-  items,
-  value,
-  defaultValue,
-  onChange,
-  flow = "slide",
-  material = "flat",
-  size = "md",
-  color,
-  tint,
-  opacity,
-  intensity = "whisper",
-  light,
-  reflection = false,
-  shadow = false,
-  labelColor,
-  activeLabelColor,
-  className,
-  style,
-  ...rest
-}: LiquidTabsProps) {
+export function LiquidTabs(props: LiquidTabsProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("LiquidTabs");
+  const {
+    items,
+    value,
+    defaultValue,
+    onChange,
+    flow = "slide",
+    // A theme can only set "glass" | "flat" (ThemeMaterial), never "caustics".
+    material = (themed.material as LiquidTabsMaterial | undefined) ?? "flat",
+    size = "md",
+    color = themed.color,
+    tint = themed.tint,
+    opacity,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = false,
+    shadow = false,
+    labelColor,
+    activeLabelColor,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const ctx = useTabsContext();
   const flowSpec = FLOWS[flow];
@@ -361,8 +367,8 @@ export function LiquidTabs({
   const resolvedColor = resolveColor(color);
   const resolvedMaterial = resolveMaterial(material, {
     tint,
-    color: resolvedColor,
     opacity,
+    color: resolvedColor,
   });
 
   // Scene light for the indicator glint — glass only; flat stays unlit per

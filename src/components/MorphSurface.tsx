@@ -28,6 +28,7 @@ import type {
 } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
 import type { SpringConfig } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
@@ -108,36 +109,38 @@ interface MorphGeom {
   anchorTop: boolean;
 }
 
-export function MorphSurface({
-  open,
-  closedSize = DEFAULT_CLOSED,
-  openSize = DEFAULT_OPEN,
-  radius = 24,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  light,
-  reflection = true,
-  refraction = false,
-  // Material volume defaults "present" (0.7), because the two hand-rolled
-  // specular sites below were tuned at different pre-pack constants:
-  // 0.4 · 0.7 reproduces the body's hardcoded 0.28 exactly (LiquidButton's
-  // mapping), and 0.7 reproduces the satellites' bare `specularPlacement`
-  // default identically (Droplets/Thinking's mapping) — see buildMorphScene.
-  intensity = "present",
-  shadow = true,
-  satellites = true,
-  anchor = "center",
-  absorption = "shrink",
-  bodySpring,
-  satelliteSpring,
-  closedContent,
-  openContent,
-  className,
-  style,
-  ...rest
-}: MorphSurfaceProps) {
+export function MorphSurface(props: MorphSurfaceProps) {
+  const themed = useThemedSurface("MorphSurface");
+  const {
+    open,
+    closedSize = DEFAULT_CLOSED,
+    openSize = DEFAULT_OPEN,
+    radius = themed.radius ?? 24,
+    material = themed.material ?? "glass",
+    tint,
+    opacity,
+    color,
+    light,
+    reflection = true,
+    refraction = false,
+    // Material volume defaults "present" (0.7), because the two hand-rolled
+    // specular sites below were tuned at different pre-pack constants:
+    // 0.4 · 0.7 reproduces the body's hardcoded 0.28 exactly (LiquidButton's
+    // mapping), and 0.7 reproduces the satellites' bare `specularPlacement`
+    // default identically (Droplets/Thinking's mapping) — see buildMorphScene.
+    intensity = themed.intensity ?? "present",
+    shadow = true,
+    satellites = true,
+    anchor = "center",
+    absorption = "shrink",
+    bodySpring,
+    satelliteSpring,
+    closedContent,
+    openContent,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLDivElement>();
 
@@ -183,8 +186,14 @@ export function MorphSurface({
     height
   );
   const resolved = useMemo(
-    () => resolveMaterial(material, { tint, color, refractionUrl, opacity }),
-    [material, tint, color, refractionUrl, opacity]
+    () =>
+      resolveMaterial(material, {
+        tint: tint ?? themed.tint,
+        color: color ?? themed.color,
+        refractionUrl,
+        opacity,
+      }),
+    [material, tint, color, themed, refractionUrl, opacity]
   );
   const sceneLight =
     !reflection || light === null

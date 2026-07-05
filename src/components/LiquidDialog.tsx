@@ -52,6 +52,7 @@ import type {
   Vec,
 } from "../liquid";
 import { useMotionSprings } from "../liquid/useMotionSprings";
+import { useThemedSurface } from "../theme";
 import { usePrefersReducedMotion } from "../utils";
 import { resolveIntensity } from "./intensity";
 import { overlayRoot, overlayZ } from "./overlay";
@@ -126,26 +127,28 @@ function buildMorphScene(
   return { path, speculars };
 }
 
-export function LiquidDialog({
-  open,
-  onClose,
-  origin,
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  intensity = "whisper",
-  radius = 24,
-  padding = 28,
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  children,
-  className,
-  style,
-  ...rest
-}: LiquidDialogProps) {
+export function LiquidDialog(props: LiquidDialogProps) {
+  const themed = useThemedSurface("LiquidDialog");
+  const {
+    open,
+    onClose,
+    origin,
+    material = themed.material ?? "glass",
+    tint,
+    opacity,
+    color,
+    intensity = themed.intensity ?? "whisper",
+    radius = themed.radius ?? 24,
+    padding = 28,
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    children,
+    className,
+    style,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
 
   // The portal stays mounted for EXIT_MS after close so the fade-out
@@ -238,8 +241,14 @@ export function LiquidDialog({
     size?.h ?? 0
   );
   const resolved = useMemo(
-    () => resolveMaterial(material, { tint, color, refractionUrl, opacity }),
-    [material, tint, color, refractionUrl, opacity]
+    () =>
+      resolveMaterial(material, {
+        tint: tint ?? themed.tint,
+        color: color ?? themed.color,
+        refractionUrl,
+        opacity,
+      }),
+    [material, tint, color, themed, refractionUrl, opacity]
   );
   const volume = resolveIntensity(intensity);
   const sceneLight = useMemo(() => {

@@ -66,19 +66,20 @@ import { ACTIVATION_KEYS, DEFAULT_INTENSITY, DEFAULT_SPRING } from "../hooks/use
 import { resolveIntensity } from "./intensity";
 import type { LiquidIntensity } from "./intensity";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 import { useInView, usePrefersReducedMotion } from "../utils";
 
 export interface LiquidButtonProps
   extends SurfaceStyleProps,
     ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * Press feel. `"jelly"` (default) deforms the geometry on press —
-   * volume-preserving squash, point-aware dent, release jiggle, optional
-   * `releaseWave`. `"still"` keeps the same pill rigid: zero geometry
+   * Press feel. `"still"` (default) keeps the pill rigid: zero geometry
    * deformation, pressing only through the non-geometric polish (fill
    * deepening via `pressFeedback` and the press glint via `pressGlint`).
-   * `squash`, `spring`, `releaseWave`, and `deformPress` are jelly-only and
-   * inert on `"still"`. Reduced motion still wins over `"jelly"`.
+   * `"jelly"` deforms the geometry on press — volume-preserving squash,
+   * point-aware dent, release jiggle, optional `releaseWave`. `squash`,
+   * `spring`, `releaseWave`, and `deformPress` are jelly-only and inert on
+   * `"still"`. Reduced motion still wins over `"jelly"`.
    */
   variant?: "jelly" | "still";
   /**
@@ -331,42 +332,46 @@ function buildJellyScene(
   return { path, speculars };
 }
 
-export function LiquidButton({
-  variant = "jelly",
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  light,
-  reflection = true,
-  refraction = false,
-  // Material volume defaults "present" (0.7) — brighter than the surface
-  // family's "whisper", because the button's glint was designed brighter:
-  // 0.4 · 0.7 reproduces the pre-pack 0.28 specular exactly.
-  intensity = "present",
-  shadow = true,
-  squash = DEFAULT_INTENSITY,
-  width = DEFAULT_WIDTH,
-  height = DEFAULT_HEIGHT,
-  spring = DEFAULT_SPRING,
-  pressFeedback = true,
-  pressColor,
-  deformPress = true,
-  releaseWave = false,
-  pressGlint = true,
-  disabled = false,
-  children,
-  className,
-  style,
-  onPointerDown,
-  onPointerUp,
-  onPointerCancel,
-  onPointerLeave,
-  onKeyDown,
-  onKeyUp,
-  onBlur,
-  ...rest
-}: LiquidButtonProps) {
+export function LiquidButton(props: LiquidButtonProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("LiquidButton");
+  const {
+    variant = "still",
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    light,
+    reflection = true,
+    refraction = false,
+    // Material volume defaults "present" (0.7) — brighter than the surface
+    // family's "whisper", because the button's glint was designed brighter:
+    // 0.4 · 0.7 reproduces the pre-pack 0.28 specular exactly.
+    intensity = themed.intensity ?? "present",
+    shadow = true,
+    squash = DEFAULT_INTENSITY,
+    width = DEFAULT_WIDTH,
+    height = DEFAULT_HEIGHT,
+    spring = DEFAULT_SPRING,
+    pressFeedback = true,
+    pressColor,
+    deformPress = true,
+    releaseWave = false,
+    pressGlint = true,
+    disabled = false,
+    children,
+    className,
+    style,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+    ...rest
+  } = props;
   const prefersReducedMotion = usePrefersReducedMotion();
   const { ref, inView } = useInView<HTMLButtonElement>();
   const animating = !prefersReducedMotion && inView;

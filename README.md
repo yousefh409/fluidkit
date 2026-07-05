@@ -81,6 +81,24 @@ Every surface component shares one styling pack, applied wherever it's physicall
 - `glass` — white tint + backdrop blur/saturation, specular highlights from one configurable scene light (`light` prop), toggleable via `reflection`. Opt-in `refraction` adds Chromium-only edge lensing (SVG displacement inside `backdrop-filter`; degrades silently). A drop of water is liquid glass.
 - `flat` — plain color; also the automatic fallback when `backdrop-filter` is unsupported.
 
+### Theming
+
+`FluidThemeProvider` turns a brand into coherent surfaces: semantic tokens in, per-component styling out.
+
+```tsx
+import { FluidThemeProvider } from "fluidkit";
+
+<FluidThemeProvider theme={{ accent: "#0A7CFF", surface: "#FFF", text: "#14151A", radius: 14, mode: "light" }}>
+  <App /> {/* every fluidkit surface inside derives its tint/fill/radius */}
+</FluidThemeProvider>
+```
+
+- **Tokens**: `accent`, `surface`, `text`, `radius` (px), `mode` (`"light"`/`"dark"`), plus the character knobs `material` (`"glass"`/`"flat"`) and `intensity`. `mutedText`, `background`, and `fontFamily` are accepted but reserved (no component consumes them yet).
+- **Derivation, not broadcast.** Each component reads the theme through its own rule (`src/theme/derive.ts`): containers tint from `accent` at a per-component share and fill flat from `surface`; ink surfaces (the tabs indicator, buttons, ripples) fill from `accent`; `LiquidText` glyphs fill from `text`; `radius` applies where a component has a radius prop. Dark `mode` raises tint alphas so glass reads over dark hosts.
+- **Only set tokens derive.** An absent token never overrides a component default, so a colors-only theme keeps each component's character (tabs stay flat, buttons stay `present`). No provider = exactly the unthemed rendering.
+- **Precedence**: explicit props → theme derivation → component defaults. Nested providers merge token-by-token, inner wins.
+- `material="caustics"` is deliberately not themeable — it's ambient art, not a brand surface.
+
 ## Cross-cutting guarantees
 
 - **Reduced motion**: `prefers-reduced-motion` collapses every effect to a clean static state; animation loops never run.
@@ -89,6 +107,15 @@ Every surface component shares one styling pack, applied wherever it's physicall
 - **Theming**: colors, tint, light position, and physics via props. No brand shipped.
 - **Graceful degradation**: feature detection picks the best available path; never hard-fails.
 - **Performance**: animation loops pause off-screen (IntersectionObserver) and under reduced motion.
+
+## Motion accessibility & degradation
+
+Every exported component ships with a tested degradation contract (`tests/degradation/`, one contract file per component). What you're guaranteed:
+
+- **Reduced motion.** With `prefers-reduced-motion` on, a component still renders its content and stays interactive — buttons click, tabs switch, tooltips show on focus, dialogs open and close. No animation loop runs and no frame rewrites geometry; each primitive parks in its documented static state (the "Degrades to" column above). Opacity-only cross-fades are the one kind of motion that remains. When the preference is unknown (e.g. SSR), components default to the static-safe rendering.
+- **Missing capability.** Where a component leans on a browser capability, the fallback is a real rendering, never a blank box: without `backdrop-filter`, glass degrades to a frosted flat fill (`GlassPanes`/`Silk` to layered tinted sheets); without WebGL, `Caustics` renders just its plaster wall and `LiquidMetal` a static metallic gradient; `refraction` is opt-in and silently skipped where SVG-filter backdrops aren't supported.
+
+Consumers don't need to keep their own static fallbacks on top: if fluidkit renders it moving, it also renders it still.
 
 ## Roadmap
 

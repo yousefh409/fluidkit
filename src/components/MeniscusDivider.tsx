@@ -26,6 +26,7 @@ import type { SpecularSpot, Vec } from "../liquid";
 import { resolveIntensity } from "./intensity";
 import { rimGlowStyle, rimStyle } from "./rim";
 import type { SurfaceStyleProps } from "./surface";
+import { useThemedSurface } from "../theme";
 
 export interface MeniscusDividerProps
   extends SurfaceStyleProps,
@@ -60,21 +61,25 @@ function buildBeadScene(
   return { path, speculars };
 }
 
-export function MeniscusDivider({
-  material = "glass",
-  tint,
-  opacity,
-  color,
-  thickness = 4,
-  intensity = "whisper",
-  light,
-  reflection = true,
-  refraction = false,
-  shadow = true,
-  className,
-  style,
-  ...rest
-}: MeniscusDividerProps) {
+export function MeniscusDivider(props: MeniscusDividerProps) {
+  // Theme overlay: folds in below explicit props (destructure defaults),
+  // above the built-in defaults. Empty (all-undefined) with no provider.
+  const themed = useThemedSurface("MeniscusDivider");
+  const {
+    material = themed.material ?? "glass",
+    tint = themed.tint,
+    opacity,
+    color = themed.color,
+    thickness = 4,
+    intensity = themed.intensity ?? "whisper",
+    light,
+    reflection = true,
+    refraction = false,
+    shadow = true,
+    className,
+    style,
+    ...rest
+  } = props;
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number | null>(null);
 
